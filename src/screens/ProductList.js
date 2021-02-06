@@ -5,11 +5,11 @@ import GlobalStyles from '../constants/GlobalStyles';
 export default function Login(props) {
   return (
     <View style={GlobalStyles.mainView}>
-      <Text>Login Screen..</Text>
+      <Text>Product List Screen</Text>
       <TouchableOpacity
         style={GlobalStyles.buttonContainer}
-        onPress={() => props.navigation.replace('DrawerNavigator')}>
-        <Text style={GlobalStyles.buttonText}>Login</Text>
+        onPress={() => props.navigation.navigate('Checkout')}>
+        <Text style={GlobalStyles.buttonText}>Checkout</Text>
       </TouchableOpacity>
     </View>
   );

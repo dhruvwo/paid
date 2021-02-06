@@ -4,10 +4,20 @@
   "private": true,
   "scripts": {
     "android": "react-native run-android",
-    "ios": "react-native run-ios",
     "start": "react-native start",
     "test": "jest",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "env:qa": "node scripts/set-environment.js qa",
+    "env:dev": "node scripts/set-environment.js development",
+    "env:prod": "node scripts/set-environment.js production",
+    "_ios": "react-native run-ios",
+    "ios": "npm run env:dev && npm run _ios",
+    "ios:qa": "npm run env:qa && npm run _ios",
+    "ios:prod": "npm run env:prod && npm run _ios",
+    "_build:ios": "react-native bundle --platform ios ...",
+    "build:ios": "npm run env:dev && npm run _build:ios",
+    "build:ios:qa": "npm run env:qa && npm run _build:ios",
+    "build:ios:prod": "npm run env:prod && npm run _build:ios"
   },
   "dependencies": {
     "@react-native-community/masked-view": "^0.1.10",
@@ -23,8 +33,13 @@
     "react-native-reanimated": "^1.13.2",
     "react-native-safe-area-context": "^3.1.9",
     "react-native-screens": "^2.17.1",
+    "react-native-simple-toast": "^1.1.3",
     "react-native-svg-transformer": "^0.14.3",
-    "react-native-vector-icons": "^8.0.0"
+    "react-native-vector-icons": "^8.0.0",
+    "react-navigation-redux-helpers": "^4.0.1",
+    "react-redux": "^7.2.2",
+    "redux": "^4.0.5",
+    "redux-thunk": "^2.3.0"
   },
   "devDependencies": {
     "@babel/core": "^7.12.13",
