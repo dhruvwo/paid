@@ -106,7 +106,7 @@ export default function Login(props) {
                 onPress={() => props.navigation.replace('DrawerNavigator')}>
                 {isLoginLoader ? (
                   <ActivityIndicator
-                    color={'#fff'}
+                    color={Colors.white}
                     size={28}
                     style={styles.loaderIcon}
                   />
@@ -137,7 +137,7 @@ export default function Login(props) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#f0f0f0',
+    backgroundColor: Colors.bgColor,
     flex: 1,
   },
   logoStyle: {
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
     flexDirection: 'column',
-    backgroundColor: '#fff',
+    backgroundColor: Colors.white,
     margin: 20,
     borderRadius: 10,
     elevation: 1,
@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   errorMessage: {
-    color: 'red',
+    color: Colors.red,
     paddingTop: 30,
   },
   buttonContainer: {

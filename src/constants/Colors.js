@@ -1,5 +1,5 @@
 export default {
-  tintColor: '#2f95dc',
+  bgColor: '#f0f0f0',
   primary: '#2fc06a',
   //   secondary: '#FAA620',
   secondaryText: '#212529',
