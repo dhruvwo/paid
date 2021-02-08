@@ -8,6 +8,7 @@ import AntDesign from 'react-native-vector-icons/AntDesign';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
 
 export default class CustomIconsComponent extends React.Component {
   render() {
@@ -90,6 +91,19 @@ export default class CustomIconsComponent extends React.Component {
       case 'Feather':
         return (
           <Feather
+            style={[
+              props.style ? props.style : {},
+              {
+                fontSize: props.size || 25,
+                color: props.color || Colors.primary,
+              },
+            ]}
+            name={props.name}
+          />
+        );
+      case 'SimpleLineIcons':
+        return (
+          <SimpleLineIcons
             style={[
               props.style ? props.style : {},
               {
