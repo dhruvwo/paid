@@ -1,5 +1,9 @@
 export default {
-  primary: '#43C069',
+  tintColor: '#2f95dc',
+  primary: '#2fc06a',
+  //   secondary: '#FAA620',
+  secondaryText: '#212529',
+  greyText: '#8a8a8a',
   white: '#FFF',
   black: '#000',
   grey: '#8F8F8F',
