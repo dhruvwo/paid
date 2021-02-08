@@ -1,5 +1,9 @@
 export default {
-  primary: '#43C069',
+  bgColor: '#f0f0f0',
+  primary: '#2fc06a',
+  //   secondary: '#FAA620',
+  secondaryText: '#212529',
+  greyText: '#8a8a8a',
   white: '#FFF',
   black: '#000',
   grey: '#8F8F8F',
