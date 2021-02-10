@@ -11,6 +11,7 @@ import Button from './Button';
 import * as _ from 'lodash';
 import Colors from '../../constants/Colors';
 import CustomIconsComponent from '../../components/CustomIcons';
+import currencyFormatter from 'currency-formatter';
 
 export default function CalculatorComponent(props) {
   const [currVal, setCurrVal] = useState(0);
@@ -44,6 +45,16 @@ export default function CalculatorComponent(props) {
     console.log('value : ', value);
   };
 
+  const onBackSpace = () => {
+    let val = _.cloneDeep(currVal);
+    let newVal = val.slice(0, -1);
+    // newVal = _.toString(newVal);
+    setCurrVal(newVal);
+
+    // setHistory(newVal);
+    // setResult(newVal);
+  };
+
   useEffect(() => {
     if (history.length) {
       // const current = parseFloat(currVal);
@@ -64,7 +75,10 @@ export default function CalculatorComponent(props) {
     <SafeAreaView style={styles.container}>
       <View style={styles.answerStyles}>
         <Text style={[styles.value, {color: Colors.primary}]}>
-          Charge ${result + (result * tax) / 100}
+          Charge{' '}
+          {currencyFormatter.format(result + (result * tax) / 100, {
+            code: 'USD',
+          })}
         </Text>
         <Text style={[styles.value, styles.taxText]}>Including Tax</Text>
       </View>
@@ -79,7 +93,25 @@ export default function CalculatorComponent(props) {
           />
           <Text style={styles.noteText}>Note</Text>
         </TouchableOpacity>
-        <Text style={styles.value}>{currVal}</Text>
+        <View style={{flexDirection: 'row'}}>
+          <Text style={styles.value}>
+            {currencyFormatter.format(currVal, {
+              code: 'USD',
+            })}
+          </Text>
+          <TouchableOpacity
+            style={styles.noteStyle}
+            onPress={() => {
+              currVal && onBackSpace();
+            }}>
+            <CustomIconsComponent
+              style={styles.iconStyle}
+              type={'Ionicons'}
+              color={Colors.grey}
+              name={'backspace-outline'}
+            />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.calculatorContainer}>

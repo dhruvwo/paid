@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import {SvgCssUri} from 'react-native-svg';
 
 function SvgImageViewer(props) {
-    console.log("")
   const {LocalIcon, path, size, width, style, height} = props;
 
   const iconProps = {};

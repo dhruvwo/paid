@@ -31,11 +31,11 @@ const styles = StyleSheet.create({
   text: (text) => ({
     color: Colors.primary,
     fontSize: 32,
-    borderWidth: text === '+' ? 1 : 0,
-    borderColor: text === '+' ? Colors.primary : Colors.white,
-    borderRadius: text === '+' ? 60 : 0,
-    paddingHorizontal: text === '+' ? 30 : 0,
-    paddingVertical: text === '+' ? 10 : 0,
+    // borderWidth: text === '+' ? 1 : 0,
+    // borderColor: text === '+' ? Colors.primary : Colors.white,
+    // borderRadius: text === '+' ? 60 : 0,
+    // paddingHorizontal: text === '+' ? 30 : 0,
+    // paddingVertical: text === '+' ? 10 : 0,
   }),
   textSecondary: {
     color: '#cecece',
@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
     height: screen.width / 4,
     alignItems: 'center',
     justifyContent: 'center',
-    // margin: 1,
+    margin: 1,
   },
   buttonDouble: {
     width: screen.width / 2 - 10,

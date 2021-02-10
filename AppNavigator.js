@@ -6,10 +6,12 @@ import {createDrawerNavigator} from '@react-navigation/drawer';
 import Colors from './src/constants/Colors';
 import {StyleSheet} from 'react-native';
 import Login from './src/screens/Login';
-import Calculator from './src/screens/Calculator';
+import CalculatorScreen from './src/screens/Calculator';
 import Checkout from './src/screens/Checkout';
 import Invoice from './src/screens/Invoice';
 import ProductList from './src/screens/ProductList';
+import CustomIconsComponent from './src/components/CustomIcons';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -18,7 +20,7 @@ const Drawer = createDrawerNavigator();
 const tabs = [
   {
     name: 'Calculator',
-    component: Calculator,
+    component: CalculatorScreen,
   },
   {
     name: 'Products',
@@ -41,21 +43,62 @@ const styles = StyleSheet.create({
 function BottomTab() {
   return (
     <Tab.Navigator
-      tabBarOptions={{
-        style: styles.tabNavigator,
-      }}>
-      {tabs.map((tab) => {
-        return (
-          <Tab.Screen
-            key={tab.name}
-            name={tab.name}
-            component={tab.component}
-          />
-        );
+      screenOptions={({route}) => ({
+        tabBarIcon: ({focused, color, size}) => {
+          let iconName;
+          let type;
+          if (route.name === 'Keypad') {
+            iconName = focused ? 'calculator' : 'calculator-outline';
+            type = 'Ionicons';
+          } else if (route.name === 'Library') {
+            iconName = focused ? 'align-left' : 'align-left';
+            type = 'Feather';
+          }
+
+          // You can return any component that you like here!
+          return (
+            <CustomIconsComponent
+              type={type}
+              name={iconName}
+              size={30}
+              color={color}
+            />
+          );
+        },
       })}
+      tabBarOptions={{
+        style: {
+          padding: 10,
+        },
+        activeTintColor: Colors.primary,
+        inactiveTintColor: 'gray',
+        labelStyle: {
+          fontSize: 14,
+        },
+      }}>
+      <Tab.Screen name="Keypad" component={CalculatorScreen} />
+      <Tab.Screen name="Library" component={ProductList} />
     </Tab.Navigator>
   );
 }
+
+//   return (
+//     <Tab.Navigator
+//       tabBarOptions={{
+//         style: styles.tabNavigator,
+//       }}>
+//       {tabs.map((tab) => {
+//         return (
+//           <Tab.Screen
+//             key={tab.name}
+//             name={tab.name}
+//             component={tab.component}
+//           />
+//         );
+//       })}
+//     </Tab.Navigator>
+//   );
+// }
 
 function ProductStack() {
   return (

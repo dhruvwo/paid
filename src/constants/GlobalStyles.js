@@ -43,6 +43,9 @@ const GlobalStyles = StyleSheet.create({
   flexStyle: {
     flex: 1,
   },
+  row: {
+    flexDirection: 'row',
+  },
 });
 
 export default GlobalStyles;

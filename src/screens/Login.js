@@ -13,6 +13,7 @@ import {
   Keyboard,
   Alert,
 } from 'react-native';
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import Colors from '../constants/Colors';
 import GlobalStyles from '../constants/GlobalStyles';
 import SvgImageViewer from '../components/SvgImageViewer';
@@ -36,101 +37,90 @@ export default function Login(props) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView
+      <KeyboardAwareScrollView
+        extraScrollHeight={120}
         style={GlobalStyles.flexStyle}
         contentContainerStyle={styles.scrollContainerStyle}
-        keyboardShouldPersistTaps="always">
-        <TouchableWithoutFeedback
-          onPress={Keyboard.dismiss}
-          accessible={false}
-          style={GlobalStyles.flexStyle}>
-          <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : ''}>
-            <SvgImageViewer
-              style={styles.logoStyle}
-              LocalIcon={LocalIcons.svgIconSet.logo}
-              height={styles.logoStyle.height}
-              width={styles.logoStyle.height}
+        keyboardShouldPersistTaps="handled">
+        <SvgImageViewer
+          style={styles.logoStyle}
+          LocalIcon={LocalIcons.svgIconSet.logo}
+          height={styles.logoStyle.height}
+          width={styles.logoStyle.height}
+        />
+        <View style={styles.modalContainer}>
+          <View style={styles.inputContainer}>
+            <CustomIconsComponent
+              style={styles.inputIcon}
+              type={'MaterialCommunityIcons'}
+              color={Colors.primary}
+              name={'email-outline'}
             />
-            <View style={styles.modalContainer}>
-              <View style={styles.inputContainer}>
-                <CustomIconsComponent
-                  style={styles.inputIcon}
-                  type={'MaterialCommunityIcons'}
-                  color={Colors.primary}
-                  name={'email-outline'}
-                />
-                <TextInput
-                  autoCapitalize={'none'}
-                  autoCorrect={false}
-                  keyboardType={'email-address'}
-                  style={styles.inputLabel}
-                  underlineColorAndroid="transparent"
-                  value={email}
-                  placeholder="Email*"
-                  onChangeText={(email) => setEmail(email.trim())}
-                />
-              </View>
-              <View style={styles.inputContainer}>
-                <CustomIconsComponent
-                  style={styles.inputIcon}
-                  type={'MaterialCommunityIcons'}
-                  color={Colors.primary}
-                  name={'form-textbox-password'}
-                />
-                <TextInput
-                  style={styles.inputLabel}
-                  underlineColorAndroid="transparent"
-                  placeholder="Password*"
-                  value={password}
-                  secureTextEntry={true}
-                  onChangeText={(password) => setPassword(password)}
-                />
-              </View>
-              <View style={styles.errorMessage}>
-                {errorMessage ? (
-                  <Text style={styles.errorMessage}>{errorMessage}</Text>
-                ) : (
-                  <View />
-                )}
-              </View>
-              <TouchableOpacity onPress={() => notInplement()}>
-                <View style={styles.loginContainer}>
-                  <Text style={styles.touchableText}>
-                    {'Forgot Password ?'}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[GlobalStyles.buttonContainer, styles.buttonContainer]}
-                onPress={() => props.navigation.replace('DrawerNavigator')}>
-                {isLoginLoader ? (
-                  <ActivityIndicator
-                    color={Colors.white}
-                    size={28}
-                    style={styles.loaderIcon}
-                  />
-                ) : (
-                  <View>
-                    <Text style={GlobalStyles.buttonText}>{'Login'}</Text>
-                  </View>
-                )}
-              </TouchableOpacity>
+            <TextInput
+              autoCapitalize={'none'}
+              autoCorrect={false}
+              keyboardType={'email-address'}
+              style={styles.inputLabel}
+              underlineColorAndroid="transparent"
+              value={email}
+              placeholder="Email*"
+              onChangeText={(email) => setEmail(email.trim())}
+            />
+          </View>
+          <View style={styles.inputContainer}>
+            <CustomIconsComponent
+              style={styles.inputIcon}
+              type={'MaterialCommunityIcons'}
+              color={Colors.primary}
+              name={'form-textbox-password'}
+            />
+            <TextInput
+              style={styles.inputLabel}
+              underlineColorAndroid="transparent"
+              placeholder="Password*"
+              value={password}
+              secureTextEntry={true}
+              onChangeText={(password) => setPassword(password)}
+            />
+          </View>
+          <View style={styles.errorContainer}>
+            {errorMessage ? (
+              <Text style={styles.errorMessage}>{errorMessage}</Text>
+            ) : (
+              <View />
+            )}
+          </View>
+          <TouchableOpacity onPress={() => notInplement()}>
+            <View style={styles.loginContainer}>
+              <Text style={styles.touchableText}>{'Forgot Password ?'}</Text>
             </View>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[GlobalStyles.buttonContainer, styles.buttonContainer]}
+            onPress={() => props.navigation.replace('DrawerNavigator')}>
+            {isLoginLoader ? (
+              <ActivityIndicator
+                color={Colors.white}
+                size={28}
+                style={styles.loaderIcon}
+              />
+            ) : (
+              <View>
+                <Text style={GlobalStyles.buttonText}>{'Login'}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
 
-            <View style={styles.signUpContainer}>
-              <Text style={styles.containerText}>Din't have an account ?</Text>
-              <TouchableOpacity onPress={() => notInplement()}>
-                <View style={styles.loginContainer}>
-                  <Text style={GlobalStyles.secondaryButtonText}>
-                    {'Sign up'}
-                  </Text>
-                </View>
-              </TouchableOpacity>
+        <View style={styles.signUpContainer}>
+          <Text style={styles.containerText}>Don't have an account ?</Text>
+          <TouchableOpacity onPress={() => notInplement()}>
+            <View style={styles.loginContainer}>
+              <Text style={GlobalStyles.secondaryButtonText}>{'Sign up'}</Text>
             </View>
-          </KeyboardAvoidingView>
-        </TouchableWithoutFeedback>
-      </ScrollView>
+          </TouchableOpacity>
+        </View>
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 }
@@ -148,15 +138,14 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   modalContainer: {
-    flex: 1,
+    // flex: 1,
     flexDirection: 'column',
     backgroundColor: Colors.white,
-    margin: 20,
+    marginHorizontal: 20,
     borderRadius: 10,
     elevation: 1,
-    padding: 10,
     paddingHorizontal: 20,
-    paddingVertical: 30,
+    paddingTop: 30,
     paddingBottom: 40,
     position: 'relative',
   },
@@ -199,9 +188,13 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     paddingHorizontal: 10,
   },
+  errorContainer: {
+    paddingVertical: 10,
+  },
   errorMessage: {
     color: Colors.red,
-    paddingTop: 30,
+    // paddingTop: 30,
+    textAlign: 'center',
   },
   buttonContainer: {
     marginVertical: 10,
@@ -211,9 +204,11 @@ const styles = StyleSheet.create({
     bottom: -35,
   },
   signUpContainer: {
-    flex: 1,
+    // flex: 1,
     flexDirection: 'row',
     alignSelf: 'center',
-    paddingVertical: 30,
+    paddingTop: 50,
+    // justifyContent: 'flex-end',
+    // backgroundColor: 'red',
   },
 });
