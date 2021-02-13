@@ -20,14 +20,14 @@ const tabs = [
   {
     name: 'Quick Pay',
     component: CalculatorScreen,
-    iconType: 'Feather',
+    iconType: 'MaterialCommunityIcons',
     focusedIconName: 'rocket-launch',
     iconName: 'rocket-launch-outline',
   },
   {
     name: 'Products',
     component: ProductList,
-    iconType: 'MaterialCommunityIcons',
+    iconType: 'Feather',
     focusedIconName: 'align-left',
     iconName: 'align-left',
   },
@@ -35,13 +35,14 @@ const tabs = [
 
 const styles = StyleSheet.create({
   tabBarStyle: {
-    padding: 10,
+    // padding: 10,
   },
   tabBarLabelStyle: {
-    fontSize: 14,
+    // fontSize: 14,
   },
   tabNavigator: {
-    backgroundColor: Colors.headerBgGrey,
+    minHeight: 60,
+    // backgroundColor: Colors.headerBgGrey,
   },
 });
 
@@ -63,6 +64,7 @@ function BottomTab() {
                 <View style={[styles.tabIcon]}>
                   <CustomIconsComponent
                     type={tab.iconType}
+                    color={focused ? Colors.primary : Colors.greyText}
                     name={focused ? tab.focusedIconName : tab.iconName}
                     size={30}
                   />
