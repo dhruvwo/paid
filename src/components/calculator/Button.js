@@ -5,24 +5,41 @@ import CustomIconsComponent from '../CustomIcons';
 
 const screen = Dimensions.get('window');
 
-export default ({onPress, text, size, iconName, iconType, theme}) => {
-  const buttonStyles = [styles.button(text)];
-  const textStyles = [styles.text];
-
-  if (size == 'double') {
-    buttonStyles.push(styles.buttonDouble);
-  }
-
-  // if(theme == "secondary") {
-  //     buttonStyles.push(styles.buttonSecondary);
-  //     textStyles.push(styles.textSecondary);
-  // } else if(theme == "accent") {
-  //     buttonStyles.push(styles.buttonAccent);
-  // }
+export default ({onPress, text, iconName, iconType}) => {
+  const styles = StyleSheet.create({
+    text: {
+      color: Colors.primary,
+      fontSize: 32,
+    },
+    textSecondary: {
+      color: '#cecece',
+    },
+    button: {
+      backgroundColor: Colors.white,
+      flex: 1,
+      height: screen.height / 9,
+      alignItems: 'center',
+      justifyContent: 'center',
+      margin: 6,
+      borderRadius: 10,
+      elevation: 2,
+      shadowOffset: {
+        width: 2,
+        height: 2,
+      },
+      shadowOpacity: 0.15,
+      shadowRadius: 2.62,
+    },
+    zeroButton: {
+      minWidth: screen.width / 4,
+    },
+  });
 
   return (
-    <TouchableOpacity onPress={onPress} style={buttonStyles}>
-      {text && <Text style={textStyles}>{text}</Text>}
+    <TouchableOpacity
+      onPress={onPress}
+      style={[styles.button, text === '0' && styles.zeroButton]}>
+      {text && <Text style={styles.text}>{text}</Text>}
       {iconType && iconName && (
         <CustomIconsComponent
           style={styles.iconStyle}
@@ -35,30 +52,3 @@ export default ({onPress, text, size, iconName, iconType, theme}) => {
     </TouchableOpacity>
   );
 };
-
-const styles = StyleSheet.create({
-  text: {
-    color: Colors.primary,
-    fontSize: 32,
-  },
-  textSecondary: {
-    color: '#cecece',
-  },
-  button: (text) => ({
-    backgroundColor: Colors.white,
-    flex: 1,
-    // height: text === 'AC' ? screen.height / 4 : screen.height / 9,
-    height: screen.height / 9,
-    alignItems: 'center',
-    justifyContent: 'center',
-    margin: 8,
-    borderRadius: 10,
-    elevation: 2,
-  }),
-  buttonDouble: {
-    width: screen.width / 2 - 10,
-    flex: 0,
-    alignItems: 'flex-start',
-    paddingLeft: 40,
-  },
-});

@@ -16,7 +16,6 @@ import Colors from '../constants/Colors';
 import CustomIconsComponent from '../components/CustomIcons';
 import currencyFormatter from 'currency-formatter';
 import {tax} from '../constants/Default';
-import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 
 const screen = Dimensions.get('window');
 
@@ -24,7 +23,6 @@ export default function CalculatorScreen(props) {
   const [currVal, setCurrVal] = useState(0);
   const [history, setHistory] = useState([]);
   const [result, setResult] = useState(0);
-  const [isDouble, setIsDouble] = useState(false);
 
   const notInplement = () => {
     return Alert.alert(``, `Not Implemented Yet!`, [
@@ -36,48 +34,44 @@ export default function CalculatorScreen(props) {
   };
 
   const handleTap = (type, value) => {
-    if (type === 'number') {
-      if (currVal < 100000) {
-        if (currVal === 0) {
-          setCurrVal(`${value}`);
-        } else {
-          setCurrVal(`${currVal}${value}`);
+    switch (type) {
+      case 'number':
+        if (parseFloat(currVal) <= 999999.99) {
+          if (parseFloat(currVal) === 0) {
+            setCurrVal(`${value}`);
+          } else {
+            if (getPrecision() !== 2) {
+              setCurrVal(`${currVal}${value}`);
+            }
+          }
         }
-      }
-    }
-
-    if (type === 'operator') {
-      // setOperator(value);
-      let historyArr = _.cloneDeep(history);
-      const current = parseFloat(currVal);
-      // console.log('current = ', current);
-      historyArr.push(current);
-      setHistory(historyArr);
-      setIsDouble(false);
-    }
-
-    if (type === 'onlyClear') {
-      setCurrVal(0);
-      setIsDouble(false);
-    }
-
-    if (type === 'clear') {
-      setCurrVal(0);
-      setIsDouble(false);
-      setHistory([]);
-      setResult(0);
-    }
-
-    if (type === 'double') {
-      setCurrVal(`${currVal}${'.'}`);
-      setIsDouble(true);
+        break;
+      case 'operator':
+        let historyArr = _.cloneDeep(history);
+        const current = parseFloat(currVal);
+        historyArr.push(current);
+        setHistory(historyArr);
+        break;
+      case 'onlyClear':
+        setCurrVal(0);
+        break;
+      case 'clear':
+        setCurrVal(0);
+        setHistory([]);
+        setResult(0);
+        break;
+      case 'double':
+        if (!currVal.toString().includes('.')) {
+          setCurrVal(`${currVal}${'.'}`);
+        }
+        break;
     }
   };
 
   const onBackSpace = () => {
     let val = _.cloneDeep(currVal);
-    let newVal = val.slice(0, -1);
-    setCurrVal(newVal);
+    let newVal = val ? val.slice(0, -1) : 0;
+    setCurrVal(newVal || 0);
   };
 
   useEffect(() => {
@@ -94,6 +88,21 @@ export default function CalculatorScreen(props) {
     }
   }, [history]);
 
+  function getPrecision() {
+    if (currVal && currVal.toString().includes('.')) {
+      return currVal.toString().split('.')[1].length;
+    }
+    return 0;
+  }
+
+  function showDot() {
+    const pres = getPrecision();
+    if (pres === 0 && currVal && currVal.toString().includes('.')) {
+      return '.';
+    }
+    return '';
+  }
+
   return (
     <SafeAreaView style={GlobalStyles.flexStyle}>
       <Header
@@ -101,13 +110,7 @@ export default function CalculatorScreen(props) {
         history={history}
         title={'Quick Pay'}
       />
-      <KeyboardAwareScrollView
-        extraScrollHeight={120}
-        style={GlobalStyles.flexStyle}
-        contentContainerStyle={{flexGrow: 1}}
-        scrollEnabled={false}
-        scrollIndicatorInsets={false}
-        keyboardShouldPersistTaps="handled">
+      <View style={GlobalStyles.flexStyle}>
         <View style={[GlobalStyles.row, styles.container]}>
           <View style={styles.amountContainer}>
             <Text style={styles.amountHeaderText}>Amount</Text>
@@ -158,14 +161,11 @@ export default function CalculatorScreen(props) {
               </TouchableOpacity>
             </View>
             <Text style={styles.value}>
-              {!isDouble
-                ? currencyFormatter.format(currVal, {
-                    code: 'USD',
-                    precision: 0,
-                  })
-                : currencyFormatter.format(currVal, {
-                    code: 'USD',
-                  })}
+              {currencyFormatter.format(currVal, {
+                code: 'USD',
+                precision: getPrecision(),
+              })}
+              {showDot()}
             </Text>
           </View>
         </View>
@@ -218,9 +218,7 @@ export default function CalculatorScreen(props) {
             />
           </View>
           <View style={GlobalStyles.row}>
-            <View style={styles.zeroRow}>
-              <Button text="0" onPress={() => handleTap('number', 0)} />
-            </View>
+            <Button text="0" onPress={() => handleTap('number', 0)} />
             <Button
               text="."
               theme="secondary"
@@ -235,7 +233,7 @@ export default function CalculatorScreen(props) {
             />
           </View>
         </View>
-      </KeyboardAwareScrollView>
+      </View>
     </SafeAreaView>
   );
 }
@@ -249,7 +247,9 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     elevation: 2,
   },
-  zeroRow: {width: screen.height / 4},
+  zeroRow: {
+    width: screen.height / 4 - 20,
+  },
   value: {
     color: Colors.greyText,
     fontSize: 34,
