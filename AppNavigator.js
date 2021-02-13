@@ -4,14 +4,13 @@ import {createStackNavigator} from '@react-navigation/stack';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {createDrawerNavigator} from '@react-navigation/drawer';
 import Colors from './src/constants/Colors';
-import {StyleSheet} from 'react-native';
 import Login from './src/screens/Login';
 import CalculatorScreen from './src/screens/Calculator';
 import Checkout from './src/screens/Checkout';
 import Invoice from './src/screens/Invoice';
 import ProductList from './src/screens/ProductList';
 import CustomIconsComponent from './src/components/CustomIcons';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import {StyleSheet, View} from 'react-native';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -19,21 +18,27 @@ const Drawer = createDrawerNavigator();
 
 const tabs = [
   {
-    name: 'Calculator',
+    name: 'Quick Pay',
     component: CalculatorScreen,
+    iconType: 'Feather',
+    focusedIconName: 'rocket-launch',
+    iconName: 'rocket-launch-outline',
   },
   {
     name: 'Products',
-    component: ProductStack,
+    component: ProductList,
+    iconType: 'MaterialCommunityIcons',
+    focusedIconName: 'align-left',
+    iconName: 'align-left',
   },
 ];
 
 const styles = StyleSheet.create({
-  tabIcon: {
-    opacity: 0.5,
+  tabBarStyle: {
+    padding: 10,
   },
-  activeTabIcon: {
-    opacity: 1,
+  tabBarLabelStyle: {
+    fontSize: 14,
   },
   tabNavigator: {
     backgroundColor: Colors.headerBgGrey,
@@ -43,41 +48,30 @@ const styles = StyleSheet.create({
 function BottomTab() {
   return (
     <Tab.Navigator
-      screenOptions={({route}) => ({
-        tabBarIcon: ({focused, color, size}) => {
-          let iconName;
-          let type;
-          if (route.name === 'Quick Pay') {
-            iconName = focused ? 'rocket-launch' : 'rocket-launch-outline';
-            type = 'MaterialCommunityIcons';
-          } else if (route.name === 'Products') {
-            iconName = focused ? 'align-left' : 'align-left';
-            type = 'Feather';
-          }
-
-          // You can return any component that you like here!
-          return (
-            <CustomIconsComponent
-              type={type}
-              name={iconName}
-              size={30}
-              color={color}
-            />
-          );
-        },
-      })}
       tabBarOptions={{
-        style: {
-          padding: 10,
-        },
-        activeTintColor: Colors.primary,
-        inactiveTintColor: 'gray',
-        labelStyle: {
-          fontSize: 14,
-        },
+        showLabel: false,
+        style: styles.tabNavigator,
       }}>
-      <Tab.Screen name="Quick Pay" component={CalculatorScreen} />
-      <Tab.Screen name="Products" component={ProductList} />
+      {tabs.map((tab) => {
+        return (
+          <Tab.Screen
+            key={tab.name}
+            name={tab.name}
+            component={tab.component}
+            options={{
+              tabBarIcon: ({focused}) => (
+                <View style={[styles.tabIcon]}>
+                  <CustomIconsComponent
+                    type={tab.iconType}
+                    name={focused ? tab.focusedIconName : tab.iconName}
+                    size={30}
+                  />
+                </View>
+              ),
+            }}
+          />
+        );
+      })}
     </Tab.Navigator>
   );
 }

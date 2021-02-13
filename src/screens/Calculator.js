@@ -37,22 +37,13 @@ export default function CalculatorScreen(props) {
 
   const handleTap = (type, value) => {
     if (type === 'number') {
-      let currVallimit = _.split(currVal, '.', 1);
-      console.log(
-        'currVal length **',
-        currVallimit[0].length,
-        currVal,
-        parseInt(currVal, 10),
-      );
-      //add condition max 6 no
-      // if (!currVal || currVallimit[0].length < 6) {
-      // if (Math.floor(parseInt(currVal, 10)).length < 6) {
-      if (currVal === 0) {
-        setCurrVal(`${value}`);
-      } else {
-        setCurrVal(`${currVal}${value}`);
+      if (currVal < 100000) {
+        if (currVal === 0) {
+          setCurrVal(`${value}`);
+        } else {
+          setCurrVal(`${currVal}${value}`);
+        }
       }
-      // }
     }
 
     if (type === 'operator') {

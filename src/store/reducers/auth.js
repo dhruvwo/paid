@@ -6,6 +6,7 @@ const initialState = {};
 export const auth = (state = initialState, action) => {
   switch (action.type) {
     case AuthState.SET_KEY:
+      console.log('action.data', action.data);
       AsyncStorage.setItem('apiServiceResponse', JSON.stringify(action.data));
       return {
         ...state,

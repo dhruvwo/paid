@@ -36,13 +36,13 @@ export default function Login(props) {
   };
 
   const onSubmit = async () => {
-    // props.navigation.replace('DrawerNavigator');
     setIsLoginLoader(true);
     await dispatch(authAction.getServiceKey());
     const loginData = await dispatch(authAction.login(email, password));
     console.log('Login data', loginData);
     if (loginData.status === 'success') {
       setIsLoginLoader(false);
+      props.navigation.replace('DrawerNavigator');
     }
   };
 
