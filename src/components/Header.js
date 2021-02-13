@@ -1,7 +1,6 @@
 import React from 'react';
 import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import Colors from '../constants/Colors';
-import GlobalStyles from '../constants/GlobalStyles';
 import CustomIconsComponent from '../components/CustomIcons';
 
 export default function Header(props) {
@@ -18,40 +17,18 @@ export default function Header(props) {
               style={styles.menuIcon}
               type={'Ionicons'}
               name={'menu'}
-              color={'black'}
+              color={Colors.white}
               size={35}
             />
           </TouchableOpacity>
         </View>
         <View style={styles.titleContainer}>
-          {props.result ? (
-            <>
-              <Text style={styles.headerText}>Current Sale</Text>
-              <View
-                style={{
-                  borderWidth: 2,
-                  borderRadius: 4,
-                  //   padding: 10,
-                  paddingHorizontal: 4,
-                  position: 'absolute',
-                  right: 76,
-                }}>
-                <Text>1</Text>
-              </View>
-              <View
-                style={{
-                  borderRightWidth: 2,
-                  borderBottomWidth: 2,
-                  borderRadius: 4,
-                  padding: 12,
-                  marginTop: 6,
-                  position: 'relative',
-                  right: 0,
-                }}></View>
-            </>
-          ) : (
-            <Text style={styles.headerText}>No Sale</Text>
-          )}
+          <Text style={styles.headerText}>{props.title}</Text>
+        </View>
+        <View style={styles.iconContainer}>
+          <Text style={styles.iconText}>
+            {props.history ? props.history.length : 0}
+          </Text>
         </View>
       </View>
     </>
@@ -60,16 +37,14 @@ export default function Header(props) {
 
 const styles = StyleSheet.create({
   pageHeader: {
-    // width: '100%',
     flexDirection: 'row',
-    // paddingVertical: Layout.window.height > 700 ? 10 : 5,
+    backgroundColor: Colors.tertiary,
   },
   buttonsContainer: {
     width: 56,
   },
   headerIconContainer: {
     paddingVertical: 15,
-    // paddingLeft: 16,
   },
   menuIcon: {
     paddingHorizontal: 4,
@@ -80,11 +55,24 @@ const styles = StyleSheet.create({
     flexShrink: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 35,
+    marginRight: 10,
   },
   headerText: {
-    fontSize: 22,
-    // fontWeight: 'bold',
+    fontSize: 24,
+    fontWeight: 'bold',
     paddingHorizontal: 6,
+    color: Colors.white,
   },
+  iconContainer: {
+    borderWidth: 2,
+    borderColor: Colors.white,
+    borderRadius: 10,
+    paddingHorizontal: 9,
+    paddingTop: 4,
+    marginVertical: 16,
+    marginHorizontal: 20,
+    color: Colors.white,
+    fontSize: 16,
+  },
+  iconText: {color: Colors.white, fontSize: 18},
 });

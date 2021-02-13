@@ -1,6 +1,17 @@
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export const axiosInterceptor = (dispatch) => {
+export const axiosInterceptor = async (dispatch) => {
+  let apiServiceResponse = await AsyncStorage.getItem('apiServiceResponse');
+  apiServiceResponse = JSON.parse(apiServiceResponse);
+  let authenticationResponse = await AsyncStorage.getItem(
+    'authenticationResponse',
+  );
+  authenticationResponse = JSON.parse(authenticationResponse);
+
+  console.log('apiServiceResponse', apiServiceResponse);
+  console.log('authenticationResponse', authenticationResponse);
+
   axios.interceptors.request.use(
     async (request) => {
       // You can modify or control request
@@ -8,13 +19,26 @@ export const axiosInterceptor = (dispatch) => {
         ...request.headers,
         'Content-Type': 'application/json',
       };
-      if (token) {
+      if (
+        apiServiceResponse &&
+        apiServiceResponse.serviceId &&
+        apiServiceResponse.key
+      ) {
         request.headers = {
           ...request.headers,
-          //   authorization: `Basic ${token}`,
-          //   'x-pre-api-version': 4,
+          'X-Paid-Service-Id': apiServiceResponse.serviceId,
+          'X-Paid-Service-Key': apiServiceResponse.key,
         };
       }
+
+      // if (authenticationResponse.token) {
+      // request.headers = {
+      //   ...request.headers,
+      //     authorization: `Basic ${token}`,
+      //     'x-pre-api-version': 4,
+      // };
+      // }
+
       return request;
     },
     (err) => {

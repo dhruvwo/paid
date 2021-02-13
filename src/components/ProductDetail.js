@@ -3,14 +3,17 @@ import {StyleSheet, Text, TouchableOpacity, View, Switch} from 'react-native';
 import Colors from '../constants/Colors';
 import GlobalStyles from '../constants/GlobalStyles';
 import CustomIconsComponent from '../components/CustomIcons';
+import FastImage from 'react-native-fast-image';
+import {ScrollView} from 'react-native-gesture-handler';
+import {KeyboardAwareView} from 'react-native-keyboard-aware-view';
 
 export default function ProductDetailModal(props) {
   const [isEnabled, setIsEnabled] = useState(false);
   const toggleSwitch = () => setIsEnabled((previousState) => !previousState);
 
   return (
-    <View>
-      <View style={styles.modalHeader}>
+    <View style={styles.container}>
+      <View style={{color: Colors.bgColor}}>
         <TouchableOpacity
           onPress={() => {
             props.closeModal();
@@ -18,19 +21,20 @@ export default function ProductDetailModal(props) {
           <CustomIconsComponent
             name={'chevron-back'}
             type={'Ionicons'}
+            // color={Colors.white}
             size={50}
           />
         </TouchableOpacity>
-        <Text style={styles.modalHeaderText}>Product Name</Text>
-        <TouchableOpacity
-          // style={[GlobalStyles.secondaryButtonContainer, {marginTop: 2}]}
-          style={{margin: 12}}
-          onPress={() => {}}>
-          <Text style={GlobalStyles.secondaryButtonText}>Add</Text>
-        </TouchableOpacity>
+      </View>
+      <View style={styles.productImageContainer}>
+        <FastImage
+          style={styles.productImage}
+          resizeMode={'cover'}
+          source={require('../assets/products/product1.jpg')}
+        />
       </View>
 
-      <View style={styles.modalContainer}>
+      <ScrollView style={styles.modalContainer}>
         <View style={styles.productContainer}>
           <Text style={styles.modalText}>Product Name</Text>
           <Text style={styles.modalText}>Description</Text>
@@ -70,18 +74,19 @@ export default function ProductDetailModal(props) {
             value={isEnabled}
           />
         </View>
-      </View>
+      </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    // backgroundColor: Colors.bgColor,
+  },
   modalHeader: {
-    // flex: 1,
     flexDirection: 'row',
-    paddingVertical: 4,
+    paddingTop: 4,
     paddingHorizontal: 6,
-    backgroundColor: Colors.bgColor,
     justifyContent: 'space-between',
   },
   modalHeaderText: {
@@ -89,13 +94,23 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   modalContainer: {
-    // flex: 1,
     flexDirection: 'column',
-    paddingVertical: 4,
+    paddingVertical: 10,
     paddingHorizontal: 10,
+    margin: 10,
+    borderRadius: 10,
   },
   modalText: {
     fontSize: 18,
+  },
+  productImageContainer: {
+    alignItems: 'center',
+    margin: 10,
+  },
+  productImage: {
+    height: 300,
+    width: '100%',
+    borderRadius: 10,
   },
   productContainer: {
     color: Colors.darkGrey,

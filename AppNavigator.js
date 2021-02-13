@@ -47,10 +47,10 @@ function BottomTab() {
         tabBarIcon: ({focused, color, size}) => {
           let iconName;
           let type;
-          if (route.name === 'Keypad') {
-            iconName = focused ? 'calculator' : 'calculator-outline';
-            type = 'Ionicons';
-          } else if (route.name === 'Library') {
+          if (route.name === 'Quick Pay') {
+            iconName = focused ? 'rocket-launch' : 'rocket-launch-outline';
+            type = 'MaterialCommunityIcons';
+          } else if (route.name === 'Products') {
             iconName = focused ? 'align-left' : 'align-left';
             type = 'Feather';
           }
@@ -76,29 +76,11 @@ function BottomTab() {
           fontSize: 14,
         },
       }}>
-      <Tab.Screen name="Keypad" component={CalculatorScreen} />
-      <Tab.Screen name="Library" component={ProductList} />
+      <Tab.Screen name="Quick Pay" component={CalculatorScreen} />
+      <Tab.Screen name="Products" component={ProductList} />
     </Tab.Navigator>
   );
 }
-
-//   return (
-//     <Tab.Navigator
-//       tabBarOptions={{
-//         style: styles.tabNavigator,
-//       }}>
-//       {tabs.map((tab) => {
-//         return (
-//           <Tab.Screen
-//             key={tab.name}
-//             name={tab.name}
-//             component={tab.component}
-//           />
-//         );
-//       })}
-//     </Tab.Navigator>
-//   );
-// }
 
 function ProductStack() {
   return (

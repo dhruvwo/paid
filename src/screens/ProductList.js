@@ -23,26 +23,20 @@ export default function ProductList(props) {
   const [showProductDetailModal, setShowProductDetailModal] = useState(false);
 
   const data = [
-    {index: 0, name: 'Anti Virus', image: '', price: '109.8'},
-    {index: 1, name: 'Abc Xyz', image: '', price: '45.7'},
-    {index: 2, name: 'Abc Xyz', discription: '1 hr', image: '', price: '32.9'},
-    {index: 3, name: 'Abc Xyz', image: '', price: '89.3'},
-    {index: 4, name: 'Abc Xyz', image: '', price: '109.8'},
-    {index: 5, name: 'Abc Xyz', discription: '1 hr', image: '', price: '45.7'},
-    {index: 6, name: 'Abc Xyz', image: '', price: '32.9'},
-    {index: 7, name: 'Abc Xyz', image: '', price: '89.3'},
-    {index: 8, name: 'Abc Xyz', image: '', price: '109.8'},
-    {index: 9, name: 'Abc Xyz', image: '', price: '45.7'},
-    {index: 12, name: 'Abc Xyz', image: '', price: '32.9'},
-    {index: 13, name: 'Abc Xyz', image: '', price: '89.3'},
-    {index: 10, name: 'Abc Xyz', image: '', price: '109.8'},
-    {index: 11, name: 'Abc Xyz', image: '', price: '45.7'},
-    {index: 14, name: 'Abc Xyz', image: '', price: '32.9'},
-    {index: 15, name: 'Abc Xyz', image: '', price: '89.3'},
-    {index: 16, name: 'Abc Xyz', image: '', price: '109.8'},
-    {index: 17, name: 'Abc Xyz', image: '', price: '45.7'},
-    {index: 18, name: 'Abc Xyz', image: '', price: '32.9'},
-    {index: 19, name: 'Abc Xyz', image: '', price: '89.3'},
+    {name: 'Anti Virus', image: '', price: '109.8'},
+    {name: 'Abc Xyz', image: '', price: '45.7'},
+    {name: 'Abc Xyz', discription: '1 hr', image: '', price: '32.9'},
+    {name: 'Abc Xyz', image: '', price: '89.3'},
+    {name: 'Abc Xyz', image: '', price: '109.8'},
+    {name: 'Abc Xyz', discription: '1 hr', image: '', price: '45.7'},
+    {name: 'Abc Xyz', image: '', price: '32.9'},
+    {name: 'Abc Xyz', image: '', price: '89.3'},
+    {name: 'Abc Xyz', image: '', price: '109.8'},
+    {name: 'Abc Xyz', image: '', price: '45.7'},
+    {name: 'Abc Xyz', image: '', price: '32.9'},
+    {name: 'Abc Xyz', image: '', price: '89.3'},
+    {name: 'Abc Xyz', image: '', price: '109.8'},
+    {name: 'Abc Xyz', image: '', price: '45.7'},
   ];
 
   const renderItem = (item, index) => {
@@ -68,11 +62,7 @@ export default function ProductList(props) {
           <Text style={styles.productPrice}>
             {currencyFormatter.format(item.price, {code: 'USD'})}
           </Text>
-          <CustomIconsComponent
-            style={{paddingVertical: 4}}
-            name={'chevron-forward'}
-            type={'Ionicons'}
-          />
+          <CustomIconsComponent style={styles.iconStyle} type={'Ionicons'} />
         </View>
       </TouchableOpacity>
     );
@@ -84,7 +74,6 @@ export default function ProductList(props) {
       <View style={styles.container}>
         <View style={styles.answerStyles}>
           <Text style={[styles.value, {color: Colors.primary}]}>
-            Charge{' '}
             {currencyFormatter.format(
               props.result + (props.result * tax) / 100,
               {
@@ -172,8 +161,11 @@ const styles = StyleSheet.create({
   },
   value: {
     color: Colors.greyText,
-    fontSize: 34,
+    fontSize: 28,
     textAlign: 'center',
+  },
+  iconStyle: {
+    paddingVertical: 4,
   },
   answerStyles: {
     flex: 1,

@@ -1,15 +1,10 @@
 import {API_URL} from '../../../env.json';
 import axios from 'axios';
 
-const login = async (email, password) => {
+const getServiceKey = async () => {
   return axios
     .request({
-      method: 'POST',
-      url: `${API_URL}/accounts/authenticate`,
-      data: {
-        username: email,
-        password: password,
-      },
+      url: `${API_URL}/api/services/getPrimaryServiceKey`,
     })
     .then((res) => {
       return Promise.resolve(res.data);
@@ -19,6 +14,6 @@ const login = async (email, password) => {
     });
 };
 
-export const auth = {
-  login,
+export const getKeys = {
+  getServiceKey,
 };
