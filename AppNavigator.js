@@ -4,6 +4,7 @@ import {createStackNavigator} from '@react-navigation/stack';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {createDrawerNavigator} from '@react-navigation/drawer';
 import Colors from './src/constants/Colors';
+import AuthLoadingScreen from './src/screens/AuthLoadingScreen';
 import Login from './src/screens/Login';
 import CalculatorScreen from './src/screens/Calculator';
 import Checkout from './src/screens/Checkout';
@@ -11,6 +12,7 @@ import Invoice from './src/screens/Invoice';
 import ProductList from './src/screens/ProductList';
 import CustomIconsComponent from './src/components/CustomIcons';
 import {StyleSheet, View} from 'react-native';
+import SideMenu from './src/components/SlideMenu';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -91,10 +93,11 @@ function ProductStack() {
 
 function DrawerNavigator() {
   return (
-    <Drawer.Navigator initialRouteName="Home">
+    <Drawer.Navigator
+      initialRouteName="Home"
+      drawerContent={(props) => <SideMenu {...props} />}>
       <Drawer.Screen name="Home" component={BottomTab} />
       <Drawer.Screen name="Invoices" component={Invoice} />
-      <Drawer.Screen name="Logout" component={BottomTab} />
     </Drawer.Navigator>
   );
 }
@@ -102,7 +105,12 @@ function DrawerNavigator() {
 function AppNavigator() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName={'Login'}>
+      <Stack.Navigator initialRouteName={'AuthLoading'}>
+        <Stack.Screen
+          name="AuthLoading"
+          component={AuthLoadingScreen}
+          options={{headerShown: false, animationEnabled: false}}
+        />
         <Stack.Screen
           name="Login"
           component={Login}

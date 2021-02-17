@@ -8,12 +8,11 @@ export const axiosInterceptor = (dispatch) => {
       let authenticationResponse = await AsyncStorage.getItem(
         'authenticationResponse',
       );
-      console.log('apiServiceResponse', apiServiceResponse);
       apiServiceResponse = JSON.parse(apiServiceResponse);
       authenticationResponse = JSON.parse(authenticationResponse);
 
-      console.log('apiServiceResponse', apiServiceResponse);
-      console.log('authenticationResponse', authenticationResponse);
+      // console.log('apiServiceResponse', apiServiceResponse);
+      // console.log('authenticationResponse', authenticationResponse);
       // You can modify or control request
       request.headers = {
         ...request.headers,

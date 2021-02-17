@@ -43,6 +43,7 @@
     "react-native-svg": "^12.1.0",
     "react-native-svg-transformer": "^0.14.3",
     "react-native-vector-icons": "^8.0.0",
+    "react-native-walkthrough-tooltip": "^1.1.11",
     "react-navigation-redux-helpers": "^4.0.1",
     "react-redux": "^7.2.2",
     "redux": "^4.0.5",

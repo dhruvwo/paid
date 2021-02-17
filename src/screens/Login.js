@@ -5,7 +5,6 @@ import {
   Text,
   TouchableOpacity,
   View,
-  SafeAreaView,
   TextInput,
   Alert,
 } from 'react-native';
@@ -39,19 +38,29 @@ export default function Login(props) {
     setIsLoginLoader(true);
     await dispatch(authAction.getServiceKey());
     const loginData = await dispatch(authAction.login(email, password));
-    console.log('Login data', loginData);
+    // console.log('Login data', loginData);
     if (loginData.status === 'success') {
+      await dispatch(authAction.getUserSetup());
       setIsLoginLoader(false);
       props.navigation.replace('DrawerNavigator');
+    }
+    if (loginData.data.status === 'failed') {
+      setErrorMessage(loginData.data.error);
+      setIsLoginLoader(false);
+    }
+    if (loginData.status === 'failed') {
+      setErrorMessage(loginData.error);
+      setIsLoginLoader(false);
     }
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <KeyboardAwareScrollView
         extraScrollHeight={120}
         style={GlobalStyles.flexStyle}
         contentContainerStyle={styles.scrollContainerStyle}
+        scrollEnabled={false}
         keyboardShouldPersistTaps="handled">
         <View style={styles.headerContainer}>
           <LinearGradient
@@ -168,7 +177,7 @@ export default function Login(props) {
             style={styles.bottomColorSecondaryContainer}></LinearGradient>
         </View>
       </KeyboardAwareScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 

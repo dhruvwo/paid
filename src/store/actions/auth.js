@@ -1,5 +1,6 @@
 import {auth, getKeys} from '../../services/api';
 import {AuthState} from '../../constants/GlobalState';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const setKey = (data) => ({
   type: AuthState.SET_KEY,
@@ -11,12 +12,15 @@ const setUser = (data) => ({
   data,
 });
 
-// const updateSessionKey = (dispatch, response) => {
+const setUserSetup = (data) => ({
+  type: AuthState.SET_USER_SETUP,
+  data,
+});
 
-//   const key = response.key;
-//   const serviceId = response.serviceId;
-//   dispatch(setKey({key, serviceId}));
-// };
+const clearUser = (status) => ({
+  type: AuthState.CLEAR_USER,
+  status: status,
+});
 
 const getServiceKey = () => {
   return (dispatch) => {
@@ -40,7 +44,11 @@ const login = (email, password) => {
     return auth
       .login(email, password)
       .then((response) => {
-        if (response.status === 'success' && response.authenticated) {
+        if (
+          response &&
+          response.status === 'success' &&
+          response.authenticated
+        ) {
           dispatch(setUser(response.AuthenticationResponse));
         }
         return response;
@@ -52,7 +60,35 @@ const login = (email, password) => {
   };
 };
 
+const getUserSetup = () => {
+  return (dispatch) => {
+    return getKeys
+      .getUserSetup()
+      .then((response) => {
+        dispatch(setUserSetup(response));
+        return response;
+      })
+      .catch((err) => {
+        console.error('error in getServiceKey action', err);
+        return err.response;
+      });
+  };
+};
+
+const logout = () => {
+  return (dispatch) => {
+    dispatch(clearUser());
+    AsyncStorage.clear();
+    return true;
+  };
+};
+
 export const authAction = {
-  login,
+  setKey,
   getServiceKey,
+  setUser,
+  login,
+  setUserSetup,
+  getUserSetup,
+  logout,
 };

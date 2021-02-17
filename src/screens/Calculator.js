@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Dimensions,
   Alert,
+  Modal,
 } from 'react-native';
 import GlobalStyles from '../constants/GlobalStyles';
 import Header from '../components/Header';
@@ -16,6 +17,8 @@ import Colors from '../constants/Colors';
 import CustomIconsComponent from '../components/CustomIcons';
 import currencyFormatter from 'currency-formatter';
 import {tax} from '../constants/Default';
+import Note from '../components/calculator/Note';
+import History from '../components/calculator/History';
 
 const screen = Dimensions.get('window');
 
@@ -23,6 +26,8 @@ export default function CalculatorScreen(props) {
   const [currVal, setCurrVal] = useState(0);
   const [history, setHistory] = useState([]);
   const [result, setResult] = useState(0);
+  const [showModal, setShowModal] = useState(false);
+  const [modalType, setModalType] = useState('');
 
   const notInplement = () => {
     return Alert.alert(``, `Not Implemented Yet!`, [
@@ -36,14 +41,13 @@ export default function CalculatorScreen(props) {
   const handleTap = (type, value) => {
     switch (type) {
       case 'number':
-        if (parseFloat(currVal) <= 999999.99) {
-          if (parseFloat(currVal) === 0) {
-            setCurrVal(`${value}`);
-          } else {
-            if (getPrecision() !== 2) {
-              setCurrVal(`${currVal}${value}`);
-            }
-          }
+        if (parseFloat(currVal) === 0) {
+          setCurrVal(`${value}`);
+        } else if (
+          getPrecision() !== 2 &&
+          parseFloat(`${currVal}${value}`) <= 999999.99
+        ) {
+          setCurrVal(`${currVal}${value}`);
         }
         break;
       case 'operator':
@@ -128,7 +132,7 @@ export default function CalculatorScreen(props) {
             <Text style={[styles.amountHeaderText, styles.totalHeaderText]}>
               Total
             </Text>
-            <TouchableOpacity onPress={() => notInplement}>
+            <TouchableOpacity onPress={() => notInplement()}>
               <Text style={[styles.amountText, styles.totalText]}>
                 {currencyFormatter.format(result + (result * tax) / 100, {
                   code: 'USD',
@@ -141,7 +145,11 @@ export default function CalculatorScreen(props) {
         <View style={styles.inputContainer}>
           <View style={styles.iconContainer}>
             <View style={GlobalStyles.row}>
-              <TouchableOpacity onPress={() => notInplement()}>
+              <TouchableOpacity
+                onPress={() => {
+                  setShowModal(true);
+                  setModalType('history');
+                }}>
                 <CustomIconsComponent
                   style={styles.historyIconStyle}
                   type={'MaterialIcons'}
@@ -150,7 +158,11 @@ export default function CalculatorScreen(props) {
                   name={'history-toggle-off'}
                 />
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => notInplement()}>
+              <TouchableOpacity
+                onPress={() => {
+                  setShowModal(true);
+                  setModalType('note');
+                }}>
                 <CustomIconsComponent
                   style={styles.iconStyle}
                   type={'SimpleLineIcons'}
@@ -234,6 +246,18 @@ export default function CalculatorScreen(props) {
           </View>
         </View>
       </View>
+      <Modal
+        animationType="slide"
+        visible={showModal}
+        onRequestClose={() => {
+          setShowModal(false);
+        }}>
+        {modalType === 'history' ? (
+          <History value={currVal} history={history} result={result} />
+        ) : (
+          <Note value={currVal} history={history} result={result} />
+        )}
+      </Modal>
     </SafeAreaView>
   );
 }

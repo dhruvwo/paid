@@ -14,6 +14,20 @@ const getServiceKey = async () => {
     });
 };
 
+const getUserSetup = async () => {
+  return axios
+    .request({
+      url: `${API_URL}/paid/user/setup`,
+    })
+    .then((res) => {
+      return Promise.resolve(res.data);
+    })
+    .catch((error) => {
+      return Promise.reject(error);
+    });
+};
+
 export const getKeys = {
   getServiceKey,
+  getUserSetup,
 };
