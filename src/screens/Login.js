@@ -147,7 +147,7 @@ export default function Login(props) {
             )}
           </TouchableOpacity>
         </LinearGradient>
-        <View style={{paddingTop: 50}}>
+        <View style={styles.forgotPasswordContainer}>
           <TouchableOpacity onPress={() => notInplement()}>
             <View style={styles.loginContainer}>
               <Text style={styles.touchableText}>{'Forgot Password ?'}</Text>
@@ -238,6 +238,12 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     borderRadius: 10,
     elevation: 1,
+    shadowOffset: {
+      width: 2,
+      height: 2,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 2.62,
     paddingHorizontal: 20,
     paddingVertical: 15,
   },
@@ -273,6 +279,7 @@ const styles = StyleSheet.create({
   touchableText: {
     color: Colors.primary,
     fontSize: 16,
+    paddingBottom: 10,
   },
   containerText: {
     color: Colors.greyText,
@@ -297,4 +304,5 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignSelf: 'center',
   },
+  forgotPasswordContainer: {paddingTop: 40},
 });

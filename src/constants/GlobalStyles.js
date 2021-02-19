@@ -33,6 +33,12 @@ const GlobalStyles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.primary,
     elevation: 1,
+    shadowOffset: {
+      width: 2,
+      height: 2,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 2.62,
   },
   secondaryButtonText: {
     color: Colors.primary,

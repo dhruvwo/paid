@@ -16,7 +16,7 @@ import * as _ from 'lodash';
 import Colors from '../constants/Colors';
 import CustomIconsComponent from '../components/CustomIcons';
 import currencyFormatter from 'currency-formatter';
-import {tax} from '../constants/Default';
+import {tax, currency} from '../constants/Default';
 import Note from '../components/calculator/Note';
 import History from '../components/calculator/History';
 
@@ -120,7 +120,7 @@ export default function CalculatorScreen(props) {
             <Text style={styles.amountHeaderText}>Amount</Text>
             <Text style={styles.amountText}>
               {currencyFormatter.format(result, {
-                code: 'USD',
+                code: _.toUpper(currency),
               })}
             </Text>
           </View>
@@ -134,8 +134,8 @@ export default function CalculatorScreen(props) {
             </Text>
             <TouchableOpacity onPress={() => notInplement()}>
               <Text style={[styles.amountText, styles.totalText]}>
-                {currencyFormatter.format(result + (result * tax) / 100, {
-                  code: 'USD',
+                {currencyFormatter.format(result + result * tax, {
+                  code: _.toUpper(currency),
                 })}
               </Text>
             </TouchableOpacity>
@@ -174,7 +174,7 @@ export default function CalculatorScreen(props) {
             </View>
             <Text style={styles.value}>
               {currencyFormatter.format(currVal, {
-                code: 'USD',
+                code: _.toUpper(currency),
                 precision: getPrecision(),
               })}
               {showDot()}
@@ -270,6 +270,12 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     borderRadius: 20,
     elevation: 2,
+    shadowOffset: {
+      width: 2,
+      height: 2,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 2.62,
   },
   zeroRow: {
     width: screen.height / 4 - 20,

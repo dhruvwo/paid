@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -7,64 +7,147 @@ import {
   SafeAreaView,
   TextInput,
   Modal,
+  FlatList,
+  ActivityIndicator,
 } from 'react-native';
-import {FlatList} from 'react-native-gesture-handler';
+import {useDispatch, useSelector} from 'react-redux';
 import GlobalStyles from '../constants/GlobalStyles';
 import Colors from '../constants/Colors';
 import currencyFormatter from 'currency-formatter';
-import {tax} from '../constants/Default';
+import Default from '../constants/Default';
 import Header from '../components/Header';
 import CustomIconsComponent from '../components/CustomIcons';
 import FastImage from 'react-native-fast-image';
 import ProductDetailModal from '../components/ProductDetail';
+import {productAction} from '../store/actions';
+import * as _ from 'lodash';
 
 export default function ProductList(props) {
+  const dispatch = useDispatch();
+  const productState = useSelector(({auth, product}) => {
+    return {
+      auth,
+      product,
+    };
+  });
+  const [refresh, setRefresh] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [showProductDetailModal, setShowProductDetailModal] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadMoreLoader, setIsLoadMoreLoader] = useState(false);
+  const [start, setStart] = useState(0);
+  const [
+    onEndReachedCalledDuringMomentum,
+    setOnEndReachedCalledDuringMomentum,
+  ] = useState(false);
 
-  const data = [
-    {name: 'Anti Virus', image: '', price: '109.8'},
-    {name: 'Abc Xyz', image: '', price: '45.7'},
-    {name: 'Abc Xyz', discription: '1 hr', image: '', price: '32.9'},
-    {name: 'Abc Xyz', image: '', price: '89.3'},
-    {name: 'Abc Xyz', image: '', price: '109.8'},
-    {name: 'Abc Xyz', discription: '1 hr', image: '', price: '45.7'},
-    {name: 'Abc Xyz', image: '', price: '32.9'},
-    {name: 'Abc Xyz', image: '', price: '89.3'},
-    {name: 'Abc Xyz', image: '', price: '109.8'},
-    {name: 'Abc Xyz', image: '', price: '45.7'},
-    {name: 'Abc Xyz', image: '', price: '32.9'},
-    {name: 'Abc Xyz', image: '', price: '89.3'},
-    {name: 'Abc Xyz', image: '', price: '109.8'},
-    {name: 'Abc Xyz', image: '', price: '45.7'},
-  ];
+  const accountId =
+    productState?.auth?.userSetup?.payments?.stripeDetails?.accountId;
+
+  useEffect(() => {
+    getData();
+  }, []);
+
+  useEffect(() => {
+    getData();
+  }, [searchText]);
+
+  const getData = async () => {
+    setIsLoading(true);
+    await dispatch(productAction.getProducts(accountId, searchText, 0));
+    setIsLoading(false);
+  };
+
+  const onRefresh = async () => {
+    setRefresh(true);
+    setStart(0);
+    await getData();
+    setRefresh(false);
+  };
+
+  const handleLoadMore = async () => {
+    let startIndex = _.cloneDeep(start);
+    if (
+      !onEndReachedCalledDuringMomentum &&
+      startIndex + Default.perPageLimit < productState.product.totalProducts
+    ) {
+      setIsLoadMoreLoader(true);
+      setStart(startIndex + Default.perPageLimit);
+      await dispatch(
+        productAction.getProducts(
+          accountId,
+          searchText,
+          startIndex + Default.perPageLimit,
+        ),
+      );
+      setIsLoadMoreLoader(false);
+      setOnEndReachedCalledDuringMomentum(true);
+    }
+  };
 
   const renderItem = (item, index) => {
     return (
       <TouchableOpacity
         style={styles.itemContainer}
-        key={index}
+        key={item.id}
         onPress={() => {
           setShowProductDetailModal(true);
+          setSelectedProduct(item);
         }}>
-        <View style={GlobalStyles.row}>
+        <View style={styles.productContainer}>
           <FastImage
             style={styles.productImage}
             resizeMode={'cover'}
-            source={require('../assets/products/product1.jpg')}
+            source={require('../assets/products/product2.jpg')}
           />
           <View style={styles.productNameContainer}>
             <Text style={styles.productName}>{item.name}</Text>
-            <Text>{item.discription}</Text>
+            <Text
+              style={styles.productDescription}
+              ellipsizeMode="tail"
+              numberOfLines={1}>
+              {item.description}
+            </Text>
           </View>
         </View>
-        <View style={[GlobalStyles.row, styles.productPriceContainer]}>
+        <View style={styles.productPriceContainer}>
           <Text style={styles.productPrice}>
-            {currencyFormatter.format(item.price, {code: 'USD'})}
+            {currencyFormatter.format(item.prices[0].unitAmountDecimal, {
+              code: _.toUpper(Default.currency),
+            })}
           </Text>
-          <CustomIconsComponent style={styles.iconStyle} type={'Ionicons'} />
         </View>
       </TouchableOpacity>
+    );
+  };
+
+  const renderEmptyComponent = () => {
+    return (
+      <View>
+        {isLoading ? (
+          <ActivityIndicator size="large" color={Colors.primary} />
+        ) : (
+          <Text style={styles.noDataFound}>No products</Text>
+        )}
+      </View>
+    );
+  };
+
+  const renderFooterComponent = () => {
+    return (
+      !isLoading && (
+        <View>
+          {isLoadMoreLoader ? (
+            <ActivityIndicator size="large" color={Colors.greyText} />
+          ) : (
+            start + Default.perPageLimit <=
+              productState.product.totalProducts && (
+              <Text style={styles.footerText}>No more products</Text>
+            )
+          )}
+        </View>
+      )
     );
   };
 
@@ -72,17 +155,6 @@ export default function ProductList(props) {
     <SafeAreaView style={GlobalStyles.mainView}>
       <Header navigation={props.navigation} />
       <View style={styles.container}>
-        <View style={styles.answerStyles}>
-          <Text style={[styles.value, {color: Colors.primary}]}>
-            {currencyFormatter.format(
-              props.result + (props.result * tax) / 100,
-              {
-                code: 'USD',
-              },
-            )}
-          </Text>
-          <Text style={[styles.value, styles.taxText]}>Including Tax</Text>
-        </View>
         <View style={GlobalStyles.flexStyle}>
           <View style={styles.searchContainer}>
             <View style={GlobalStyles.row}>
@@ -100,33 +172,21 @@ export default function ProductList(props) {
                 onChangeText={(txt) => setSearchText(txt)}
               />
             </View>
-            <CustomIconsComponent
-              style={[styles.searchIcon, {alignSelf: 'flex-end'}]}
-              type={'Ionicons'}
-              color={Colors.primary}
-              name={'add'}
-            />
           </View>
           <FlatList
-            data={data}
-            renderItem={({item, index}) => renderItem(item, item.index)}
-            ItemSeparatorComponent={() => {
-              return <View style={styles.itemSeparator} />;
-            }}
-            keyExtractor={(item) => item.key}
-            ListEmptyComponent={() => {
-              return (
-                <View>
-                  <Text style={styles.noDataFound}>Product List is empty</Text>
-                </View>
-              );
-            }}
+            data={productState.product.products}
+            refreshing={refresh}
+            onRefresh={onRefresh}
+            onEndReachedThreshold={0.5}
+            onMomentumScrollBegin={() =>
+              setOnEndReachedCalledDuringMomentum(false)
+            }
+            renderItem={({item, index}) => renderItem(item, index)}
+            onEndReached={handleLoadMore}
+            ListFooterComponent={renderFooterComponent}
+            keyExtractor={(item) => item.id}
+            ListEmptyComponent={renderEmptyComponent}
           />
-          {/* <TouchableOpacity
-            style={GlobalStyles.buttonContainer}
-            onPress={() => props.navigation.navigate('Checkout')}>
-            <Text style={GlobalStyles.buttonText}>Checkout</Text>
-          </TouchableOpacity> */}
         </View>
       </View>
       <Modal
@@ -134,14 +194,15 @@ export default function ProductList(props) {
         visible={showProductDetailModal}
         onRequestClose={() => {
           setShowProductDetailModal(false);
+          setSelectedProduct('');
         }}>
-        <View>
-          <ProductDetailModal
-            closeModal={() => {
-              setShowProductDetailModal(false);
-            }}
-          />
-        </View>
+        <ProductDetailModal
+          closeModal={() => {
+            setShowProductDetailModal(false);
+            setSelectedProduct('');
+          }}
+          product={selectedProduct}
+        />
       </Modal>
     </SafeAreaView>
   );
@@ -151,40 +212,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     width: '100%',
-    // flexDirection: 'column',
-    // backgroundColor: '#9BCCAF',
     backgroundColor: Colors.white,
     justifyContent: 'flex-end',
   },
-  row: {
-    flexDirection: 'row',
-  },
-  value: {
-    color: Colors.greyText,
-    fontSize: 28,
-    textAlign: 'center',
-  },
-  iconStyle: {
-    paddingVertical: 4,
-  },
-  answerStyles: {
-    flex: 1,
-    backgroundColor: Colors.bgColor,
-    borderRadius: 10,
-    paddingVertical: 8,
-    marginTop: 20,
-    width: '95%',
-    alignSelf: 'center',
-    marginHorizontal: 10,
-    paddingHorizontal: 10,
-    borderWidth: 1,
-    borderColor: Colors.primary,
-    color: Colors.primary,
-    flexGrow: 1,
-    maxHeight: 80,
-    justifyContent: 'center',
-  },
-  taxText: {color: Colors.primary, fontSize: 12},
   searchContainer: {
     marginTop: 2,
     flexDirection: 'row',
@@ -199,40 +229,57 @@ const styles = StyleSheet.create({
     height: 50,
     fontSize: 17,
     fontWeight: '700',
-    // width: '85%',
     paddingHorizontal: 4,
   },
   searchIcon: {
     paddingTop: 12,
     paddingHorizontal: 8,
+    alignSelf: 'flex-end',
   },
   itemContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginHorizontal: 5,
     paddingHorizontal: 5,
-    flexDirection: 'row',
     paddingVertical: 8,
-    alignItems: 'center',
-    justifyContent: 'space-between',
   },
-  itemSeparator: {
-    borderBottomWidth: 0.5,
-    marginHorizontal: 10,
-    borderBottomColor: 'grey',
+  productContainer: {
+    flexDirection: 'row',
+    flex: 1,
+    flexGrow: 1,
+    flexShrink: 1,
   },
   productImage: {
-    height: 40,
-    width: 40,
+    height: 50,
+    width: 50,
     marginHorizontal: 4,
   },
   productNameContainer: {
-    // paddingVertical: 8,
     paddingHorizontal: 8,
   },
   productName: {
     fontSize: 18,
   },
+  productDescription: {
+    flexGrow: 1,
+    flexShrink: 1,
+  },
+  productPriceContainer: {
+    flex: 1,
+    alignItems: 'flex-end',
+  },
   productPrice: {
     fontSize: 16,
-    paddingVertical: 5,
+    paddingVertical: 2,
+    paddingHorizontal: 10,
+  },
+  footerText: {
+    paddingVertical: 10,
+    textAlign: 'center',
+  },
+  noDataFound: {
+    textAlign: 'center',
+    fontSize: 18,
+    paddingVertical: 10,
   },
 });

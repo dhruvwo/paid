@@ -17,7 +17,11 @@ const getProducts = (accountId, filter_name, start) => {
       .products(accountId, filter_name, start)
       .then((response) => {
         if (response.status === 'success') {
-          dispatch(setProduct(response));
+          if (start === 0) {
+            dispatch(setProduct(response));
+          } else {
+            dispatch(appendProduct(response));
+          }
         }
         return response;
       })
@@ -28,24 +32,6 @@ const getProducts = (accountId, filter_name, start) => {
   };
 };
 
-const getMoreProducts = (accountId, filter_name, start) => {
-  return (dispatch) => {
-    return product
-      .products(accountId, filter_name, start)
-      .then((response) => {
-        if (response.status === 'success') {
-          dispatch(appendProduct(response));
-        }
-        return response;
-      })
-      .catch((err) => {
-        console.error('error in append product action', err);
-        return err.response;
-      });
-  };
-};
-
 export const productAction = {
   getProducts,
-  getMoreProducts,
 };

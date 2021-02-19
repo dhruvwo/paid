@@ -3,6 +3,7 @@ import * as _ from 'lodash';
 
 const initialState = {
   products: [],
+  totalProducts: 0,
 };
 
 export const product = (state = initialState, action) => {

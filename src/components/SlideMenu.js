@@ -7,13 +7,18 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import {DrawerActions} from '@react-navigation/drawer';
-// import DeviceInfo from 'react-native-device-info';
+import DeviceInfo from 'react-native-device-info';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {NavigationActions, StackActions} from '@react-navigation/native';
+import {
+  NavigationActions,
+  StackActions,
+  DrawerActions,
+} from '@react-navigation/native';
 import * as _ from 'lodash';
 import CustomIconsComponent from './CustomIcons';
 import Colors from '../constants/Colors';
+import LocalIcons from '../constants/LocalIcons';
+import SvgImageViewer from '../components/SvgImageViewer';
 import {authAction} from '../store/actions/auth';
 import {useDispatch} from 'react-redux';
 
@@ -37,27 +42,26 @@ export default function SideMenu(props) {
   ];
 
   useEffect(() => {
-    // setVersion(DeviceInfo.getVersion());
+    setVersion(DeviceInfo.getVersion());
   });
 
-  navigateToScreen = (route) => async () => {
+  navigateToScreen = async (route) => {
     props.navigation.dispatch(DrawerActions.closeDrawer());
     if (route) {
       if (route === 'Home') {
-        const resetAction = StackActions.reset({
-          index: 0,
-          actions: [NavigationActions.navigate({routeName: 'DrawerNavigator'})],
-        });
-        props.navigation.dispatch(resetAction);
+        // const resetAction = StackActions.reset({
+        //   index: 0,
+        //   actions: [NavigationActions.navigate({routeName: 'DrawerNavigator'})],
+        // });
+        // props.navigation.dispatch(resetAction);
       }
       if (route === 'Invoice') {
-        const resetAction = StackActions.reset({
-          index: 0,
-          actions: [NavigationActions.navigate({routeName: 'DrawerNavigator'})],
-        });
-        props.navigation.dispatch(resetAction);
-        props.navigation.navigate('Invoice', {route});
-        return;
+        // const resetAction = StackActions.reset({
+        //   index: 0,
+        //   actions: [NavigationActions.navigate({routeName: 'DrawerNavigator'})],
+        // });
+        // props.navigation.dispatch(resetAction);
+        // props.navigation.navigate('Invoice', {route});
       }
       props.navigation.navigate(route);
     }
@@ -78,11 +82,11 @@ export default function SideMenu(props) {
         }}>
         <View style={styles.sideMenuContainer}>
           <View style={styles.sideMenuImageContainer}>
-            {/* <SvgImageViewer
-              LocalIcon={LocalIcons.svgIconSet}
-              height={45}
-              width={140}
-            /> */}
+            <SvgImageViewer
+              LocalIcon={LocalIcons.svgIconSet.logo}
+              height={styles.logoStyle.height}
+              width={styles.logoStyle.height}
+            />
           </View>
           <View style={styles.menuListContainer} />
           {menuOptions.map((item, i) => {
@@ -91,25 +95,18 @@ export default function SideMenu(props) {
                 onPress={() => navigateToScreen(item.screenName)}
                 style={styles.menuItem}
                 key={i}>
-                <View style={styles.sideMenuIconContainer}>
-                  {item.iconName ? (
-                    // <SvgImageViewer
-                    //   LocalIcon={item.iconName}
-                    //   height={22}
-                    //   width={22}
-                    // />
-                    <></>
-                  ) : (
+                <View style={styles.sideMenuListContainer}>
+                  <View style={styles.sideMenuIconContainer}>
                     <CustomIconsComponent
                       style={[{textAlign: 'center'}]}
                       name={item.icon}
                       type={item.type ? item.type : 'FontAwesome'}
                       size={22}
-                      color={Colors.greyText}
+                      color={Colors.primary}
                     />
-                  )}
+                  </View>
+                  <Text style={styles.menuText}>{item.displayName}</Text>
                 </View>
-                <Text style={styles.menuText}>{item.displayName}</Text>
               </TouchableOpacity>
             );
           })}
@@ -121,16 +118,14 @@ export default function SideMenu(props) {
         ) : (
           <TouchableOpacity
             onPress={() => logout()}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-            }}>
-            {/* <SvgImageViewer
-              style={[styles.sideMenuLogoutIcon]}
-              LocalIcon={LocalIcons.svgIconSet.logout}
-              height={22}
-              width={22}
-            /> */}
+            style={styles.logoutContainer}>
+            <CustomIconsComponent
+              style={styles.logoutIcon}
+              type={'SimpleLineIcons'}
+              name={'logout'}
+              color={Colors.greyText}
+              size={21}
+            />
             <Text style={styles.menuText}>Logout</Text>
           </TouchableOpacity>
         )}
@@ -148,16 +143,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    paddingHorizontal: 30,
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 10,
+  },
+  logoStyle: {
+    height: 130,
   },
   menuListContainer: {
-    // paddingVertical: 10,
-    // width: 290,
+    paddingVertical: 5,
     height: 1,
     borderTopWidth: 1,
     borderTopColor: '#d0d0d0',
@@ -166,18 +161,20 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    // minHeight: 50,
     alignItems: 'center',
   },
   sideMenuImageContainer: {
-    // paddingHorizontal: 20,
-    // paddingVertical: 10,
-    // minHeight: 50,
-    // alignItems: 'flex-start',
-    // justifyContent: 'flex-end',
-    // backgroundColor: Colors.bgColor,
-    // alignItems: 'center',
-    // width: 290,
+    padding: 0,
+    margin: 0,
+    alignItems: 'flex-start',
+    justifyContent: 'flex-end',
+    backgroundColor: Colors.bgColor,
+    alignItems: 'center',
+  },
+  sideMenuListContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
   },
   sideMenuIconContainer: {
     width: 30,
@@ -185,25 +182,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'column',
-    // marginLeft: 35,
-    // marginRight: 10,
-    marginVertical: 2,
+    marginRight: 10,
+  },
+  logoutContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+  },
+  logoutIcon: {
+    marginRight: 10,
   },
   sideMenuLogoutIcon: {
     width: 30,
     height: 30,
-    // marginLeft: 35,
-    // marginRight: 10,
     alignSelf: 'center',
     textAlign: 'center',
   },
   versionContainer: {
-    paddingRight: 10,
+    paddingRight: 20,
     paddingVertical: 6,
     fontSize: 16,
   },
   menuText: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '600',
     color: Colors.darkGrey,
   },

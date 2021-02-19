@@ -2,8 +2,15 @@ import React from 'react';
 import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import Colors from '../constants/Colors';
 import CustomIconsComponent from '../components/CustomIcons';
+import {useSelector} from 'react-redux';
 
 export default function Header(props) {
+  const cartState = useSelector(({cart}) => {
+    return {
+      cart,
+    };
+  });
+
   return (
     <>
       <View style={styles.pageHeader}>
@@ -25,11 +32,13 @@ export default function Header(props) {
         <View style={styles.titleContainer}>
           <Text style={styles.headerText}>{props.title}</Text>
         </View>
-        <View style={styles.iconContainer}>
-          <Text style={styles.iconText}>
-            {props.history ? props.history.length : 0}
-          </Text>
-        </View>
+        <TouchableOpacity onPress={() => props.navigation.navigate('Checkout')}>
+          <View style={styles.iconContainer}>
+            <Text style={styles.iconText}>
+              {cartState.cart.products ? cartState.cart.products.length : 0}
+            </Text>
+          </View>
+        </TouchableOpacity>
       </View>
     </>
   );
@@ -74,5 +83,5 @@ const styles = StyleSheet.create({
     color: Colors.white,
     fontSize: 16,
   },
-  iconText: {color: Colors.white, fontSize: 18},
+  iconText: {color: Colors.white, fontSize: 18, paddingBottom: 4},
 });

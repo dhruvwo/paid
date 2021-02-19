@@ -1,6 +1,7 @@
 import {auth, getKeys} from '../../services/api';
 import {AuthState} from '../../constants/GlobalState';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {navigate} from '../../RootNavigation';
 
 const setKey = (data) => ({
   type: AuthState.SET_KEY,
@@ -17,9 +18,8 @@ const setUserSetup = (data) => ({
   data,
 });
 
-const clearUser = (status) => ({
+const clearUser = () => ({
   type: AuthState.CLEAR_USER,
-  status: status,
 });
 
 const getServiceKey = () => {
@@ -44,11 +44,7 @@ const login = (email, password) => {
     return auth
       .login(email, password)
       .then((response) => {
-        if (
-          response &&
-          response.status === 'success' &&
-          response.authenticated
-        ) {
+        if (response.status === 'success' && response.authenticated === true) {
           dispatch(setUser(response.AuthenticationResponse));
         }
         return response;
@@ -79,6 +75,9 @@ const logout = () => {
   return (dispatch) => {
     dispatch(clearUser());
     AsyncStorage.clear();
+    navigate('Login', {
+      reset: true,
+    });
     return true;
   };
 };

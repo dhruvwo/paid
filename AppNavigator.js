@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
@@ -13,6 +13,7 @@ import ProductList from './src/screens/ProductList';
 import CustomIconsComponent from './src/components/CustomIcons';
 import {StyleSheet, View} from 'react-native';
 import SideMenu from './src/components/SlideMenu';
+import {navigationRef, isReadyRef} from './src/RootNavigation';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -83,20 +84,25 @@ function BottomTab() {
 function ProductStack() {
   return (
     <Stack.Navigator
-      initialRouteName={'ProductList'}
+      initialRouteName={'Home'}
       screenOptions={{headerShown: false}}>
-      <Tab.Screen name="ProductList" component={ProductList} />
+      <Tab.Screen name="Home" component={BottomTab} />
       <Tab.Screen name="Checkout" component={Checkout} />
     </Stack.Navigator>
   );
 }
 
 function DrawerNavigator() {
+  useEffect(() => {
+    return () => {
+      isReadyRef.current = false;
+    };
+  }, []);
   return (
     <Drawer.Navigator
       initialRouteName="Home"
       drawerContent={(props) => <SideMenu {...props} />}>
-      <Drawer.Screen name="Home" component={BottomTab} />
+      <Drawer.Screen name="Home" component={ProductStack} />
       <Drawer.Screen name="Invoices" component={Invoice} />
     </Drawer.Navigator>
   );
@@ -104,7 +110,11 @@ function DrawerNavigator() {
 
 function AppNavigator() {
   return (
-    <NavigationContainer>
+    <NavigationContainer
+      ref={navigationRef}
+      onReady={() => {
+        isReadyRef.current = true;
+      }}>
       <Stack.Navigator initialRouteName={'AuthLoading'}>
         <Stack.Screen
           name="AuthLoading"

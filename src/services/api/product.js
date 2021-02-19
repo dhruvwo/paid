@@ -16,8 +16,9 @@ const products = async (accountId, filter_name, start) => {
           filter_name: filter_name,
           start: start,
           limit: Default.perPageLimit,
+          filter_currency: Default.currency,
+          // filter_type:"one_time"
         },
-        // filter_type: 'one_time',
       },
     })
     .then((res) => {
