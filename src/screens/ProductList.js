@@ -101,7 +101,7 @@ export default function ProductList(props) {
           <FastImage
             style={styles.productImage}
             resizeMode={'cover'}
-            source={require('../assets/products/product2.jpg')}
+            source={require('../assets/products/product2.png')}
           />
           <View style={styles.productNameContainer}>
             <Text style={styles.productName}>{item.name}</Text>

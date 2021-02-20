@@ -9,6 +9,7 @@ import {
   Modal,
   Alert,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import GlobalStyles from '../constants/GlobalStyles';
 import Colors from '../constants/Colors';
@@ -126,7 +127,7 @@ export default function Checkout(props) {
             <FastImage
               style={styles.productImage}
               resizeMode={'cover'}
-              source={require('../assets/products/product2.jpg')}
+              source={require('../assets/products/product2.png')}
             />
           </View>
           <View style={styles.productDetailContainer}>
@@ -363,8 +364,8 @@ const styles = StyleSheet.create({
     paddingBottom: 3,
   },
   productImage: {
-    height: 70,
-    width: 70,
+    height: 100,
+    width: 100,
     marginHorizontal: 4,
   },
   loaderIcon: {
@@ -466,6 +467,7 @@ const styles = StyleSheet.create({
   sendButtonContainer: {
     paddingHorizontal: 20,
     backgroundColor: Colors.white,
+    paddingBottom: Platform.OS === 'ios' ? 0 : 20,
   },
   deleteContainer: {
     paddingTop: 5,
