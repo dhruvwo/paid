@@ -6,13 +6,38 @@ const setInvoice = (data) => ({
   data,
 });
 
-const getInvoices = (accountId, filter_name, start) => {
+const appendInvoice = (data) => ({
+  type: InvoiceState.APPEND_INVOICE,
+  data,
+});
+
+const getInvoices = (
+  accountId,
+  filter_total,
+  startAfter,
+  filter_customer,
+  created,
+  status,
+  dueDate,
+) => {
   return (dispatch) => {
     return invoice
-      .getInvoices(accountId, filter_name, start)
+      .invoices(
+        accountId,
+        filter_total,
+        startAfter,
+        filter_customer,
+        created,
+        status,
+        dueDate,
+      )
       .then((response) => {
         if (response.status === 'success') {
-          dispatch(setInvoice(response));
+          if (startAfter) {
+            dispatch(appendInvoice(response));
+          } else {
+            dispatch(setInvoice(response));
+          }
         }
         return response;
       })
