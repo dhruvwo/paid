@@ -8,6 +8,7 @@ import {
   Dimensions,
 } from 'react-native';
 import {useDispatch, useSelector} from 'react-redux';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import Colors from '../constants/Colors';
 import GlobalStyles from '../constants/GlobalStyles';
 import CustomIconsComponent from '../components/CustomIcons';
@@ -72,7 +73,7 @@ export default function ProductDetailModal(props) {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.modalHeader}>
         <TouchableOpacity
           style={styles.backBtn}
@@ -159,7 +160,7 @@ export default function ProductDetailModal(props) {
           </View>
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 

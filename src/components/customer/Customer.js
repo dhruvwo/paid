@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import Colors from '../../constants/Colors';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import GlobalStyles from '../../constants/GlobalStyles';
 import CustomIconsComponent from '../CustomIcons';
 import {customerAction} from '../../store/actions';
@@ -156,7 +157,7 @@ export default function Customer(props) {
   return showAddModal ? (
     <AddCustomer closeModal={() => setShowAddModal(false)} />
   ) : (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.searchContainer}>
         <View style={GlobalStyles.row}>
           <CustomIconsComponent
@@ -199,7 +200,7 @@ export default function Customer(props) {
           ListEmptyComponent={() => renderEmptyComponent()}
         />
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 

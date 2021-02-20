@@ -9,6 +9,7 @@ import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
+import Entypo from 'react-native-vector-icons/Entypo';
 
 export default class CustomIconsComponent extends React.Component {
   render() {
@@ -104,6 +105,19 @@ export default class CustomIconsComponent extends React.Component {
       case 'SimpleLineIcons':
         return (
           <SimpleLineIcons
+            style={[
+              props.style ? props.style : {},
+              {
+                fontSize: props.size || 25,
+                color: props.color || Colors.primary,
+              },
+            ]}
+            name={props.name}
+          />
+        );
+      case 'Entypo':
+        return (
+          <Entypo
             style={[
               props.style ? props.style : {},
               {

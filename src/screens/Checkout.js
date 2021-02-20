@@ -121,68 +121,73 @@ export default function Checkout(props) {
           setShowProductDetailModal(true);
           setSelectedProduct(item.product);
         }}>
-        <View style={[GlobalStyles.row, {justifyContent: 'space-between'}]}>
-          <View style={GlobalStyles.row}>
+        <View style={GlobalStyles.row}>
+          <View style={[GlobalStyles.row, styles.imageContainer]}>
             <FastImage
               style={styles.productImage}
               resizeMode={'cover'}
               source={require('../assets/products/product2.jpg')}
             />
-            <Text style={styles.productName}>{item.product.name}</Text>
           </View>
-          <TouchableOpacity
-            style={{paddingTop: 5}}
-            onPress={() => deleteProduct(item.id)}>
-            <CustomIconsComponent
-              name={'delete-outline'}
-              type={'MaterialCommunityIcons'}
-              color={Colors.red}
-            />
-          </TouchableOpacity>
-        </View>
-        <View>
-          <View style={[GlobalStyles.row, {justifyContent: 'space-between'}]}>
-            <Text style={styles.priceContainter}>
-              Price:{' '}
-              {currencyFormatter.format(item.price / 100, {
+          <View style={styles.productDetailContainer}>
+            <View style={styles.titleIconContainer}>
+              <Text style={styles.productName}>{item.product.name}</Text>
+              <TouchableOpacity
+                style={styles.deleteContainer}
+                onPress={() => deleteProduct(item.id)}>
+                <CustomIconsComponent
+                  name={'delete-outline'}
+                  type={'MaterialCommunityIcons'}
+                  color={Colors.red}
+                />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.productPrice}>
+              {currencyFormatter.format((item.price / 100) * item.qty, {
                 code: _.toUpper(Default.currency),
               })}
             </Text>
-            <View style={[styles.qtyContainer]}>
-              <TouchableOpacity
-                style={styles.qtyBtn('-')}
-                onPress={() => {
-                  item.qty > 1 && updateCart(item, '-');
-                }}>
-                <Text style={styles.qtyText}>-</Text>
-              </TouchableOpacity>
-              <Text
-                style={[
-                  styles.qtyText,
-                  {
-                    borderColor: Colors.greyText,
-                    borderTopWidth: 1,
-                    borderBottomWidth: 1,
-                  },
-                ]}>
-                {item.qty}
-              </Text>
-              <TouchableOpacity
-                style={styles.qtyBtn('+')}
-                onPress={() => {
-                  updateCart(item, '+');
-                  // setQty(qty + 1);
-                }}>
-                <Text style={styles.qtyText}>+</Text>
-              </TouchableOpacity>
+            <View style={[GlobalStyles.row, styles.quantityContainer]}>
+              <View style={[styles.qtyContainer]}>
+                <TouchableOpacity
+                  style={styles.qtyBtn('-')}
+                  onPress={() => {
+                    item.qty > 1 && updateCart(item, '-');
+                  }}>
+                  <CustomIconsComponent
+                    name={'minus'}
+                    size={25}
+                    col
+                    type={'Entypo'}
+                  />
+                </TouchableOpacity>
+                <Text
+                  style={[
+                    styles.qtyText,
+                    {
+                      marginHorizontal: 10,
+                    },
+                  ]}>
+                  {item.qty}
+                </Text>
+                <TouchableOpacity
+                  style={styles.qtyBtn('+')}
+                  onPress={() => {
+                    updateCart(item, '+');
+                    // setQty(qty + 1);
+                  }}>
+                  <CustomIconsComponent
+                    name={'add'}
+                    size={25}
+                    col
+                    type={'MaterialIcons'}
+                  />
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-          <Text style={styles.productPrice}>
-            {currencyFormatter.format((item.price / 100) * item.qty, {
-              code: _.toUpper(Default.currency),
-            })}
-          </Text>
         </View>
+        <View></View>
       </TouchableOpacity>
     );
   };
@@ -197,27 +202,42 @@ export default function Checkout(props) {
 
   const renderFooterComponent = () => {
     return (
-      <View style={[styles.productContainer, {alignItems: 'flex-end'}]}>
-        <View style={GlobalStyles.row}>
-          <Text style={styles.taxText}>
-            Tax ({Default.tax * 100}% {Default.taxName}) :{' '}
+      <View style={[styles.totalView]}>
+        <View
+          style={[
+            GlobalStyles.row,
+            styles.priceDetailContainer,
+            {marginVertical: 0},
+          ]}>
+          <Text style={styles.taxText}>Total MRP</Text>
+          <Text style={styles.billProductPrice}>
+            {currencyFormatter.format(getTotal() / 100, {
+              code: _.toUpper(Default.currency),
+            })}
           </Text>
-          <Text style={styles.productPrice}>
+        </View>
+        <View style={[GlobalStyles.row, styles.priceDetailContainer]}>
+          <Text style={styles.taxText}>
+            Tax ({Default.tax * 100}% {Default.taxName})
+          </Text>
+          <Text style={styles.billProductPrice}>
             {currencyFormatter.format((getTotal() * Default.tax) / 100, {
               code: _.toUpper(Default.currency),
             })}
           </Text>
         </View>
-        <View style={GlobalStyles.row}>
-          <Text style={styles.taxText}>Total : </Text>
-          <Text style={styles.productPrice}>
-            {currencyFormatter.format(
-              (getTotal() + getTotal() * Default.tax) / 100,
-              {
-                code: _.toUpper(Default.currency),
-              },
-            )}
-          </Text>
+        <View style={[GlobalStyles.row, styles.totalAmountContainer]}>
+          <View style={styles.totalContainer}>
+            <Text style={styles.totalText}>Total Amount </Text>
+            <Text style={styles.totalText}>
+              {currencyFormatter.format(
+                (getTotal() + getTotal() * Default.tax) / 100,
+                {
+                  code: _.toUpper(Default.currency),
+                },
+              )}
+            </Text>
+          </View>
         </View>
       </View>
     );
@@ -230,9 +250,10 @@ export default function Checkout(props) {
         <View style={styles.container}>
           <View style={styles.customerContainer}>
             <TouchableOpacity
-              style={styles.productContainer}
+              style={[styles.productContainer, styles.selectProductContainer]}
+              disabled={!_.isEmpty(customer)}
               onPress={() => setShowCustomerModal(true)}>
-              <Text style={GlobalStyles.secondaryButtonText}>
+              <Text style={styles.selectCustomerText(!_.isEmpty(customer))}>
                 {_.isEmpty(customer)
                   ? 'Select customer'
                   : customer.metadata.business_name +
@@ -244,6 +265,11 @@ export default function Checkout(props) {
                     customer.email +
                     ')'}
               </Text>
+              {!_.isEmpty(customer) && (
+                <TouchableOpacity onPress={() => setShowCustomerModal(true)}>
+                  <Text style={styles.changeText}>CHANGE</Text>
+                </TouchableOpacity>
+              )}
             </TouchableOpacity>
           </View>
           <FlatList
@@ -251,24 +277,15 @@ export default function Checkout(props) {
             renderItem={({item, index}) => renderItem(item, index)}
             keyExtractor={(item) => item.id}
             ListEmptyComponent={renderEmptyComponent}
-            ListFooterComponent={renderFooterComponent}
           />
-          <View style={styles.totalContainer}>
-            <Text style={styles.totalText}>
-              {currencyFormatter.format(
-                (getTotal() + getTotal() * Default.tax) / 100,
-                {
-                  code: _.toUpper(Default.currency),
-                },
-              )}
-            </Text>
-
+          {renderFooterComponent()}
+          <View style={styles.sendButtonContainer}>
             <TouchableOpacity
               style={[
                 GlobalStyles.secondaryButtonContainer,
                 !_.isEmpty(customer) && customer.paymentMethod
                   ? ''
-                  : {backgroundColor: Colors.greyText},
+                  : styles.disableButton,
               ]}
               disabled={!(!_.isEmpty(customer) && customer.paymentMethod)}
               onPress={() =>
@@ -295,11 +312,7 @@ export default function Checkout(props) {
           </View>
         </View>
       ) : (
-        <View
-          style={[
-            styles.container,
-            {justifyContent: 'center', paddingHorizontal: 20},
-          ]}>
+        <View style={[styles.container, styles.emptyContainer]}>
           <Text style={styles.noDataFound}>Cart is Empty.</Text>
           <TouchableOpacity
             style={GlobalStyles.secondaryButtonContainer}
@@ -344,10 +357,10 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
     backgroundColor: Colors.bgColor,
-    // justifyContent: 'flex-end',
   },
   customerContainer: {
-    padding: 8,
+    paddingTop: 8,
+    paddingBottom: 3,
   },
   productImage: {
     height: 70,
@@ -360,86 +373,133 @@ const styles = StyleSheet.create({
   },
   productContainer: {
     marginVertical: 5,
-    marginHorizontal: 10,
+    backgroundColor: Colors.white,
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    shadowColor: '#303838',
+    shadowOffset: {width: 0, height: 1},
+    shadowRadius: 2,
+    shadowOpacity: 0.1,
+    elevation: 2,
+  },
+  totalView: {
     backgroundColor: Colors.white,
     paddingVertical: 5,
-    paddingRight: 15,
-    elevation: 1,
-    shadowOffset: {
-      width: 2,
-      height: 2,
-    },
-    shadowOpacity: 0.15,
-    shadowRadius: 2.62,
+    paddingHorizontal: 15,
+    paddingTop: 10,
+    paddingVertical: 10,
+    marginTop: 10,
   },
   productName: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    textAlign: 'left',
-  },
-  priceContainter: {
     fontSize: 20,
-    textAlign: 'right',
-    paddingHorizontal: 12,
+    fontWeight: 'bold',
   },
   productPrice: {
-    fontSize: 24,
-    textAlign: 'right',
-    fontWeight: 'bold',
-    paddingVertical: 10,
-  },
-  totalContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    // marginVertical: 5,
-    // marginHorizontal: 10,
-    borderTopEndRadius: 40,
-    borderTopStartRadius: 40,
-    backgroundColor: Colors.tertiary,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-  },
-  totalText: {
-    fontSize: 26,
-    fontWeight: 'bold',
-    paddingTop: 10,
-    // textAlign: 'left',
-    color: Colors.white,
+    fontSize: 19,
+    // fontWeight: 'bold',
   },
   taxText: {
     fontSize: 16,
-    // textAlign: 'left',
-    paddingTop: 16,
-    // color: Colors.white,
-  },
-  iconStyle: {
-    marginHorizontal: 3,
   },
   qtyContainer: {
     flexDirection: 'row',
-    // paddingVertical: 10,
-    // paddingHorizontal: 20,
   },
   qtyText: {
     fontSize: 20,
     paddingHorizontal: 6,
-    width: 40,
     textAlign: 'center',
   },
   qtyBtn: (txt) => ({
-    borderTopLeftRadius: txt === '-' ? 10 : 0,
-    borderBottomLeftRadius: txt === '-' ? 10 : 0,
-    borderTopRightRadius: txt === '+' ? 10 : 0,
-    borderBottomRightRadius: txt === '+' ? 10 : 0,
-    borderWidth: 1,
-    width: 30,
-    borderColor: Colors.greyText,
+    backgroundColor: Colors.bgColor,
     justifyContent: 'center',
+    paddingHorizontal: 5,
+    paddingVertical: 3,
+    borderRadius: 5,
     alignItems: 'center',
   }),
   noDataFound: {
     fontSize: 18,
     textAlign: 'center',
     paddingVertical: 20,
+  },
+  selectCustomerText: (isCustomerSelected) => ({
+    fontWeight: 'bold',
+    fontSize: 20,
+    textAlign: isCustomerSelected ? 'left' : 'center',
+    flexGrow: 1,
+    flexShrink: 1,
+    marginRight: 20,
+    color: isCustomerSelected ? Colors.black : Colors.primary,
+    marginVertical: 10,
+  }),
+  totalContainer: {
+    width: '100%',
+    borderTopWidth: 0.5,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    borderColor: 'lightgrey',
+    paddingVertical: 10,
+    marginTop: 10,
+  },
+  totalText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  billProductPrice: {
+    fontSize: 18,
+  },
+  changeText: {
+    color: Colors.primary,
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  selectProductContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  productDetailContainer: {
+    flexGrow: 1,
+    flexShrink: 1,
+    marginLeft: 20,
+  },
+  sendButtonContainer: {
+    paddingHorizontal: 20,
+    backgroundColor: Colors.white,
+  },
+  deleteContainer: {
+    paddingTop: 5,
+  },
+  titleIconContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    flexGrow: 1,
+  },
+  imageContainer: {
+    width: '25%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 20,
+  },
+  emptyContainer: {
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+  },
+  disableButton: {
+    backgroundColor: Colors.greyText,
+    borderColor: Colors.greyText,
+  },
+  totalAmountContainer: {
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  quantityContainer: {
+    justifyContent: 'space-between',
+    marginVertical: 10,
+  },
+  priceDetailContainer: {
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginVertical: 5,
   },
 });

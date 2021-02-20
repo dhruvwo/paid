@@ -24,14 +24,12 @@ const GlobalStyles = StyleSheet.create({
     backgroundColor: Colors.grey,
   },
   secondaryButtonContainer: {
-    flexDirection: 'column',
     justifyContent: 'center',
-    height: 50,
+    paddingVertical: 10,
     paddingHorizontal: 20,
-    borderRadius: 25,
+    borderRadius: 5,
     backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: Colors.primary,
+    backgroundColor: Colors.primary,
     elevation: 1,
     shadowOffset: {
       width: 2,
@@ -41,7 +39,7 @@ const GlobalStyles = StyleSheet.create({
     shadowRadius: 2.62,
   },
   secondaryButtonText: {
-    color: Colors.primary,
+    color: Colors.white,
     fontWeight: 'bold',
     fontSize: 20,
     textAlign: 'center',
