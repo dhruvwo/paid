@@ -257,13 +257,13 @@ export default function Checkout(props) {
               <Text style={styles.selectCustomerText(!_.isEmpty(customer))}>
                 {_.isEmpty(customer)
                   ? 'Select customer'
-                  : customer.metadata.business_name +
+                  : customer?.metadata?.business_name +
                     '-' +
-                    customer.metadata.first_name +
+                    customer?.metadata?.first_name +
                     ' ' +
-                    customer.metadata.last_name +
+                    customer?.metadata?.last_name +
                     '(' +
-                    customer.email +
+                    customer?.email +
                     ')'}
               </Text>
               {!_.isEmpty(customer) && (

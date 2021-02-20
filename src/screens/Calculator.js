@@ -19,10 +19,18 @@ import currencyFormatter from 'currency-formatter';
 import {tax, currency} from '../constants/Default';
 import Note from '../components/calculator/Note';
 import History from '../components/calculator/History';
+import {cartAction} from '../store/actions';
+import {useDispatch, useSelector} from 'react-redux';
 
 const screen = Dimensions.get('window');
 
 export default function CalculatorScreen(props) {
+  const dispatch = useDispatch();
+  const cartState = useSelector(({cart}) => {
+    return {
+      cart,
+    };
+  });
   const [currVal, setCurrVal] = useState(0);
   const [history, setHistory] = useState([]);
   const [result, setResult] = useState(0);
@@ -36,6 +44,17 @@ export default function CalculatorScreen(props) {
         style: 'cancel',
       },
     ]);
+  };
+  // console.log('cart', cartState);
+
+  const addCart = async (current) => {
+    const data = {
+      id: 'quickPay' + history.length,
+      product: {type: 'quick Pay', note: ''},
+      price: current * 100,
+    };
+    // console.log('data', data);
+    await dispatch(cartAction.addProduct(data));
   };
 
   const handleTap = (type, value) => {
@@ -55,6 +74,7 @@ export default function CalculatorScreen(props) {
         const current = parseFloat(currVal);
         historyArr.push(current);
         setHistory(historyArr);
+        addCart(current);
         break;
       case 'onlyClear':
         setCurrVal(0);
@@ -253,9 +273,23 @@ export default function CalculatorScreen(props) {
           setShowModal(false);
         }}>
         {modalType === 'history' ? (
-          <History value={currVal} history={history} result={result} />
+          <History
+            value={currVal}
+            history={history}
+            result={result}
+            closeModal={() => {
+              setShowModal(false);
+            }}
+          />
         ) : (
-          <Note value={currVal} history={history} result={result} />
+          <Note
+            value={currVal}
+            history={history}
+            result={result}
+            closeModal={() => {
+              setShowModal(false);
+            }}
+          />
         )}
       </Modal>
     </SafeAreaView>

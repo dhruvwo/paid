@@ -2,18 +2,33 @@ import {API_URL} from '../../../env.json';
 import axios from 'axios';
 import Default from '../../constants/Default';
 
-const invoices = async (accountId, filter_total, filter_customer, created) => {
+const invoices = async (
+  accountId,
+  filter_total,
+  startAfter,
+  filter_customer,
+  created,
+  status,
+  dueDate,
+) => {
+  let params = {
+    accountId: accountId,
+    perPage: Default.perPageLimit,
+    filterData: {
+      filter_total: filter_total,
+      filter_customer: filter_customer,
+      created: created,
+      status: status,
+      dueDate: dueDate,
+    },
+  };
+  if (startAfter) {
+    params['startAfter'] = startAfter;
+  }
+
   return axios
-    .get(`${API_URL}/billing/payments/stripe-invoices`, {
-      params: {
-        accountId: accountId,
-        perPage: Default.perPageLimit,
-        filterData: {
-          filter_total: filter_total,
-          filter_customer: filter_customer,
-          created: created,
-        },
-      },
+    .get(`${API_URL}/billing/payments/get-stripe-invoices`, {
+      params,
     })
     .then((res) => {
       return Promise.resolve(res.data);
