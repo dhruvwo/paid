@@ -50,7 +50,9 @@ export default function ProductList(props) {
   }, []);
 
   useEffect(() => {
-    getData();
+    if (searchText) {
+      getData();
+    }
   }, [searchText]);
 
   const getData = async () => {
@@ -113,7 +115,7 @@ export default function ProductList(props) {
         </View>
         <View style={styles.productPriceContainer}>
           <Text style={styles.productPrice}>
-            {currencyFormatter.format(item.prices[0].unitAmountDecimal, {
+            {currencyFormatter.format(item.prices[0].unitAmountDecimal / 100, {
               code: _.toUpper(Default.currency),
             })}
           </Text>

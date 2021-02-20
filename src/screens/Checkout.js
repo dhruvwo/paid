@@ -144,7 +144,7 @@ export default function Checkout(props) {
           <View style={[GlobalStyles.row, {justifyContent: 'space-between'}]}>
             <Text style={styles.priceContainter}>
               Price:{' '}
-              {currencyFormatter.format(item.price, {
+              {currencyFormatter.format(item.price / 100, {
                 code: _.toUpper(Default.currency),
               })}
             </Text>
@@ -178,7 +178,7 @@ export default function Checkout(props) {
             </View>
           </View>
           <Text style={styles.productPrice}>
-            {currencyFormatter.format(item.price * item.qty, {
+            {currencyFormatter.format((item.price / 100) * item.qty, {
               code: _.toUpper(Default.currency),
             })}
           </Text>
@@ -203,7 +203,7 @@ export default function Checkout(props) {
             Tax ({Default.tax * 100}% {Default.taxName}) :{' '}
           </Text>
           <Text style={styles.productPrice}>
-            {currencyFormatter.format(getTotal() - getTotal() * Default.tax, {
+            {currencyFormatter.format((getTotal() * Default.tax) / 100, {
               code: _.toUpper(Default.currency),
             })}
           </Text>
@@ -211,9 +211,12 @@ export default function Checkout(props) {
         <View style={GlobalStyles.row}>
           <Text style={styles.taxText}>Total : </Text>
           <Text style={styles.productPrice}>
-            {currencyFormatter.format(getTotal() + getTotal() * Default.tax, {
-              code: _.toUpper(Default.currency),
-            })}
+            {currencyFormatter.format(
+              (getTotal() + getTotal() * Default.tax) / 100,
+              {
+                code: _.toUpper(Default.currency),
+              },
+            )}
           </Text>
         </View>
       </View>
@@ -252,9 +255,12 @@ export default function Checkout(props) {
           />
           <View style={styles.totalContainer}>
             <Text style={styles.totalText}>
-              {currencyFormatter.format(getTotal() + getTotal() * Default.tax, {
-                code: _.toUpper(Default.currency),
-              })}
+              {currencyFormatter.format(
+                (getTotal() + getTotal() * Default.tax) / 100,
+                {
+                  code: _.toUpper(Default.currency),
+                },
+              )}
             </Text>
 
             <TouchableOpacity

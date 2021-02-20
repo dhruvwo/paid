@@ -24,4 +24,5 @@ export const CartState = {
 
 export const InvoiceState = {
   SET_INVOICE: 'SET_INVOICE',
+  APPEND_INVOICE: 'APPEND_INVOICE',
 };

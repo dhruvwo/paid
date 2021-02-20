@@ -44,9 +44,11 @@ export default function Customer(props) {
   }, []);
 
   useEffect(() => {
-    setStart(0);
-    getCustomer();
-    console.log('searchText', searchText);
+    if (searchText) {
+      setStart(0);
+      getCustomer();
+      console.log('searchText', searchText);
+    }
   }, [searchText]);
 
   const getCustomer = async () => {

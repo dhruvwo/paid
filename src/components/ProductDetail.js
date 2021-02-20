@@ -38,7 +38,7 @@ export default function ProductDetailModal(props) {
   useEffect(() => {
     setTotal(
       currencyFormatter.format(
-        qty * props.product.prices[0].unitAmountDecimal,
+        (qty * props.product.prices[0].unitAmountDecimal) / 100,
         {
           code: _.toUpper(currency),
         },
@@ -108,7 +108,7 @@ export default function ProductDetailModal(props) {
               <View style={styles.priceContainer}>
                 <Text style={styles.priceText}>
                   {currencyFormatter.format(
-                    props.product.prices[0].unitAmountDecimal,
+                    props.product.prices[0].unitAmountDecimal / 100,
                     {
                       code: _.toUpper(currency),
                     },
