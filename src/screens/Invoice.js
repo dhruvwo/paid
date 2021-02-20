@@ -17,7 +17,7 @@ import currencyFormatter from 'currency-formatter';
 import Default from '../constants/Default';
 import Header from '../components/Header';
 import CustomIconsComponent from '../components/CustomIcons';
-import InvoiceDetailModal from '../components/InvoiceDetail';
+// import InvoiceDetailModal from '../components/InvoiceDetail';
 import {invoiceAction} from '../store/actions';
 import * as _ from 'lodash';
 import moment from 'moment';
@@ -296,13 +296,13 @@ export default function Invoice(props) {
           setShowInvoiceDetailModal(false);
           setSelectedInvoice('');
         }}>
-        <InvoiceDetailModal
+        {/* <InvoiceDetailModal
           closeModal={() => {
             setShowInvoiceDetailModal(false);
             setSelectedInvoice('');
           }}
           invoice={selectedInvoice}
-        />
+        /> */}
       </Modal>
     </SafeAreaView>
   );
