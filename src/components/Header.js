@@ -11,52 +11,71 @@ export default function Header(props) {
     };
   });
 
+  const cartData =
+    props.showCart === 'Product'
+      ? cartState?.cart?.products
+      : cartState?.cart?.quickPay;
+
   return (
-    <>
-      <View style={styles.pageHeader}>
-        <View style={styles.buttonsContainer}>
+    <View style={styles.pageHeader(props.showMenu)}>
+      <View style={styles.buttonsContainer}>
+        <TouchableOpacity
+          style={styles.headerIconContainer}
+          onPress={() => {
+            props.showMenu ? props.navigation.openDrawer() : props.close();
+          }}>
+          <CustomIconsComponent
+            type={props.showMenu ? 'AntDesign' : 'MaterialIcons'}
+            name={props.showMenu ? 'menu-unfold' : 'arrow-back-ios'}
+            color={Colors.white}
+          />
+        </TouchableOpacity>
+      </View>
+      <View style={styles.titleContainer}>
+        <Text style={styles.headerText}>{props.title}</Text>
+      </View>
+      <View style={styles.buttonsContainer}>
+        {props.showCart ? (
           <TouchableOpacity
             style={styles.headerIconContainer}
             onPress={() => {
-              props.navigation.openDrawer();
+              props.navigation.navigate('Checkout', props.showCart);
             }}>
             <CustomIconsComponent
-              style={styles.menuIcon}
-              type={'Ionicons'}
-              name={'menu'}
+              style={styles.checkOutIcon}
+              name={'money-check-alt'}
+              type={'FontAwesome5'}
               color={Colors.white}
-              size={35}
             />
+            {cartData.length ? (
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>{cartData.length}</Text>
+              </View>
+            ) : (
+              <></>
+            )}
           </TouchableOpacity>
-        </View>
-        <View style={styles.titleContainer}>
-          <Text style={styles.headerText}>{props.title}</Text>
-        </View>
-        <TouchableOpacity onPress={() => props.navigation.navigate('Checkout')}>
-          <View style={styles.iconContainer}>
-            <Text style={styles.iconText}>
-              {cartState.cart.products ? cartState.cart.products.length : 0}
-            </Text>
-          </View>
-        </TouchableOpacity>
+        ) : (
+          <></>
+        )}
       </View>
-    </>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  pageHeader: {
+  pageHeader: (showMenu) => ({
     flexDirection: 'row',
-    backgroundColor: Colors.tertiary,
-  },
+    backgroundColor: Colors.primary,
+    opacity: 0.9,
+    width: '100%',
+    // backgroundColor: showMenu ? Colors.tertiary : Colors.bgColor,
+  }),
   buttonsContainer: {
-    width: 56,
+    minWidth: 60,
   },
   headerIconContainer: {
-    paddingVertical: 15,
-  },
-  menuIcon: {
-    paddingHorizontal: 4,
+    padding: 18,
   },
   titleContainer: {
     flexDirection: 'row',
@@ -64,24 +83,28 @@ const styles = StyleSheet.create({
     flexShrink: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 10,
+    paddingHorizontal: 6,
   },
   headerText: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
-    paddingHorizontal: 6,
     color: Colors.white,
   },
-  iconContainer: {
-    borderWidth: 2,
-    borderColor: Colors.white,
-    borderRadius: 10,
-    paddingHorizontal: 9,
-    paddingTop: 4,
-    marginVertical: 16,
-    marginHorizontal: 20,
-    color: Colors.white,
-    fontSize: 16,
+  badge: {
+    position: 'absolute',
+    top: 3,
+    right: 8,
+    padding: 4,
+    minHeight: 12,
+    width: 'auto',
+    borderRadius: 50,
+    backgroundColor: Colors.secondary,
+    justifyContent: 'space-around',
+    alignItems: 'center',
   },
-  iconText: {color: Colors.white, fontSize: 18, paddingBottom: 4},
+  badgeText: {
+    color: Colors.white,
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
 });

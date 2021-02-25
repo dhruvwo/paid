@@ -1,21 +1,23 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {
   View,
   TouchableOpacity,
   Text,
   StyleSheet,
   TextInput,
-  SafeAreaView,
+  Alert,
+  Modal,
 } from 'react-native';
 import Colors from '../../constants/Colors';
 import CustomIconsComponent from '../CustomIcons';
 import GlobalStyles from '../../constants/GlobalStyles';
 import currencyFormatter from 'currency-formatter';
-import {tax, currency} from '../../constants/Default';
+import Default from '../../constants/Default';
 import {cartAction} from '../../store/actions';
 import {useDispatch, useSelector} from 'react-redux';
 import * as _ from 'lodash';
-import {useState} from 'react/cjs/react.development';
+import Header from '../Header';
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 
 export default function History(props) {
   const dispatch = useDispatch();
@@ -24,87 +26,163 @@ export default function History(props) {
       cart,
     };
   });
-  const [isEdit, setIsEdit] = useState(0);
-  const [currentVal, setCurrentVal] = useState(props.history[isEdit]);
 
-  const updateCart = async (current) => {
+  const [isEditable, setIsEditable] = useState(false);
+  const [newValue, setNewValue] = useState('');
+
+  const updateCart = async (item) => {
+    setIsEditable(false);
     const data = {
-      id: 'quickPay' + history.length,
-      product: {type: 'quick Pay', note: ''},
-      price: currentVal * 100,
+      id: item.id,
+      product: item.product,
+      price: parseFloat(newValue) * 100,
     };
+    setNewValue('');
     console.log('data', data);
-    // await dispatch(cartAction.updateCart(data));
+    await dispatch(cartAction.updateCart(data));
+  };
+
+  const update = (item) => {
+    // setIsEditable(item.id);
+    // setNewValue(item.price);
+    return Alert.alert(``, `Not Implemented Yet!`, [
+      {
+        text: 'Close',
+        style: 'cancel',
+      },
+    ]);
   };
 
   return (
-    <SafeAreaView>
-      <View style={GlobalStyles.row}>
-        <TouchableOpacity
-          style={styles.backBtn}
-          onPress={() => {
-            props.closeModal();
-          }}>
-          <CustomIconsComponent
-            name={'chevron-back'}
-            type={'Ionicons'}
-            color={Colors.darkGrey}
-            size={40}
-          />
-        </TouchableOpacity>
-        <Text style={styles.header}>History</Text>
-      </View>
-      <View style={{paddingVertical: 50, paddingHorizontal: 10}}>
-        {props.history.map((val, i) => {
-          return (
-            <View key={i}>
-              <View
-                style={[
-                  GlobalStyles.row,
-                  {paddingVertical: 10, justifyContent: 'space-between'},
-                ]}>
-                <TouchableOpacity style={styles.noteStyle}>
-                  <Text style={styles.noteText}>Edit </Text>
-                </TouchableOpacity>
-                <Text style={{fontSize: 18}}>
-                  {val} + {(val * 3) / 100} = {val + (val * 3) / 100}
-                </Text>
-              </View>
-              <View style={[GlobalStyles.row, {justifyContent: 'flex-end'}]}>
-                {i > 0 && props.history.length - 1 === i && (
-                  <Text style={{fontSize: 24}}>
-                    {' = ' +
-                      currencyFormatter.format(
-                        (props.result + props.result * tax) / 100,
-                        {
-                          code: _.toUpper(currency),
-                        },
-                      )}
-                  </Text>
+    <Modal
+      animationType="slide"
+      visible={props.visible}
+      onRequestClose={() => {
+        props.closeModal();
+      }}>
+      <Header
+        navigation={props.navigation}
+        title="History"
+        close={() => props.closeModal()}
+      />
+      <KeyboardAwareScrollView
+        style={GlobalStyles.flexStyle}
+        contentContainerStyle={styles.container}
+        keyboardShouldPersistTaps="handled">
+        {cartState.cart.quickPay.length ? (
+          cartState.cart.quickPay.map((val, i) => {
+            return (
+              <View style={styles.titleIconContainer} key={val.id}>
+                {isEditable && isEditable === val.id ? (
+                  <>
+                    <TouchableOpacity
+                      onPress={() => newValue > 0 && updateCart(val)}>
+                      <CustomIconsComponent
+                        name={'checkmark'}
+                        type={'Ionicons'}
+                      />
+                    </TouchableOpacity>
+                    <View style={GlobalStyles.row}>
+                      <TextInput
+                        style={styles.inputStyle}
+                        keyboardType={'numeric'}
+                        value={(newValue / 100).toString()}
+                        onChangeText={(val) => {
+                          console.log('parseFloat', parseFloat(val));
+                          // if (parseFloat(val) <= 999999.99 && parseFloat > 0) {
+                          setNewValue(val);
+                          // }
+                        }}
+                      />
+                      <Text style={styles.productPrice}>
+                        {`${
+                          ` + ` +
+                          currencyFormatter.format(
+                            (newValue / 100) * Default.tax,
+                            {
+                              code: _.toUpper(Default.currency),
+                            },
+                          ) +
+                          ` = ` +
+                          currencyFormatter.format(
+                            newValue / 100 + (newValue / 100) * Default.tax,
+                            {
+                              code: _.toUpper(Default.currency),
+                            },
+                          )
+                        }`}
+                      </Text>
+                    </View>
+                  </>
+                ) : (
+                  <>
+                    <TouchableOpacity onPress={() => update(val)}>
+                      <CustomIconsComponent name={'edit'} type={'AntDesign'} />
+                    </TouchableOpacity>
+                    <Text style={styles.productPrice}>
+                      {`${
+                        currencyFormatter.format(val.price / 100, {
+                          code: _.toUpper(Default.currency),
+                        }) +
+                        ` + ` +
+                        currencyFormatter.format(
+                          (val.price / 100) * Default.tax,
+                          {
+                            code: _.toUpper(Default.currency),
+                          },
+                        ) +
+                        ` = ` +
+                        currencyFormatter.format(
+                          val.price / 100 + (val.price / 100) * Default.tax,
+                          {
+                            code: _.toUpper(Default.currency),
+                          },
+                        )
+                      }`}
+                    </Text>
+                  </>
                 )}
               </View>
-            </View>
-          );
-        })}
-      </View>
-    </SafeAreaView>
+            );
+          })
+        ) : (
+          <Text style={styles.noDataFound}>No payment yet!</Text>
+        )}
+      </KeyboardAwareScrollView>
+    </Modal>
   );
 }
 const styles = StyleSheet.create({
-  header: {
-    flex: 1,
-    textAlign: 'center',
-    fontSize: 24,
-    paddingVertical: 5,
+  container: {
+    flexGrow: 1,
+    backgroundColor: Colors.bgColor,
   },
-  noteStyle: {
-    paddingHorizontal: 20,
-    // justifyContent: 'flex-end',
-    // flexDirection: 'row',
+  titleIconContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    margin: 5,
+    marginBottom: 0,
+    backgroundColor: Colors.white,
+    padding: 10,
   },
-  noteText: {
-    color: Colors.primary,
+  productPrice: {
     fontSize: 18,
-    // paddingVertical: 2,
+  },
+  noDataFound: {
+    fontSize: 18,
+    textAlign: 'center',
+    paddingVertical: 20,
+  },
+  inputStyle: {
+    // flexGrow: 1,
+    // flexShrink: 1,
+    fontSize: 20,
+    borderWidth: 1,
+    borderColor: Colors.darkGrey,
+    margin: 0,
+    padding: 0,
+    minWidth: 100,
+    paddingHorizontal: 10,
+    borderRadius: 10,
   },
 });

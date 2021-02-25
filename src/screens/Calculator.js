@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   Dimensions,
   Alert,
-  Modal,
 } from 'react-native';
 import GlobalStyles from '../constants/GlobalStyles';
 import Header from '../components/Header';
@@ -16,7 +15,7 @@ import * as _ from 'lodash';
 import Colors from '../constants/Colors';
 import CustomIconsComponent from '../components/CustomIcons';
 import currencyFormatter from 'currency-formatter';
-import {tax, currency} from '../constants/Default';
+import Default from '../constants/Default';
 import Note from '../components/calculator/Note';
 import History from '../components/calculator/History';
 import {cartAction} from '../store/actions';
@@ -32,29 +31,26 @@ export default function CalculatorScreen(props) {
     };
   });
   const [currVal, setCurrVal] = useState(0);
-  const [history, setHistory] = useState([]);
-  const [result, setResult] = useState(0);
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState('');
-
-  const notInplement = () => {
-    return Alert.alert(``, `Not Implemented Yet!`, [
-      {
-        text: 'Close',
-        style: 'cancel',
-      },
-    ]);
-  };
-  // console.log('cart', cartState);
+  const [note, setNote] = useState('');
 
   const addCart = async (current) => {
     const data = {
-      id: 'quickPay' + history.length,
-      product: {type: 'quick Pay', note: ''},
+      id: 'quickPay' + cartState?.cart?.quickPay?.length,
+      product: {type: 'quick Pay', note: note},
       price: current * 100,
+      qty: 1,
     };
-    // console.log('data', data);
-    await dispatch(cartAction.addProduct(data));
+    await dispatch(cartAction.addQuickPay(data));
+    setCurrVal(0);
+    setNote('');
+  };
+
+  const fnClearAll = async () => {
+    setCurrVal(0);
+    setNote('');
+    await dispatch(cartAction.clearQuickPay());
   };
 
   const handleTap = (type, value) => {
@@ -70,19 +66,14 @@ export default function CalculatorScreen(props) {
         }
         break;
       case 'operator':
-        let historyArr = _.cloneDeep(history);
-        const current = parseFloat(currVal);
-        historyArr.push(current);
-        setHistory(historyArr);
-        addCart(current);
+        addCart(parseFloat(currVal));
         break;
       case 'onlyClear':
         setCurrVal(0);
+        setNote('');
         break;
       case 'clear':
-        setCurrVal(0);
-        setHistory([]);
-        setResult(0);
+        fnClearAll();
         break;
       case 'double':
         if (!currVal.toString().includes('.')) {
@@ -98,19 +89,13 @@ export default function CalculatorScreen(props) {
     setCurrVal(newVal || 0);
   };
 
-  useEffect(() => {
-    if (history.length) {
-      // const current = parseFloat(currVal);
-      // console.log('history --> ', history);
-      var sum = history.reduce(function (a, b) {
-        return parseFloat(a) + parseFloat(b);
-      }, 0);
-      // console.log('total --> ', sum);
-      setResult(sum);
-      // setPrevVal(current);
-      setCurrVal(0);
-    }
-  }, [history]);
+  const getResult = () => {
+    let add = 0;
+    cartState.cart.quickPay.map((val, i) => {
+      add += val.price;
+    });
+    return add;
+  };
 
   function getPrecision() {
     if (currVal && currVal.toString().includes('.')) {
@@ -131,32 +116,39 @@ export default function CalculatorScreen(props) {
     <SafeAreaView style={GlobalStyles.flexStyle}>
       <Header
         navigation={props.navigation}
-        history={history}
         title={'Quick Pay'}
+        showMenu={true}
+        showCart={'Calculator'}
       />
       <View style={GlobalStyles.flexStyle}>
         <View style={[GlobalStyles.row, styles.container]}>
           <View style={styles.amountContainer}>
             <Text style={styles.amountHeaderText}>Amount</Text>
             <Text style={styles.amountText}>
-              {currencyFormatter.format(result, {
-                code: _.toUpper(currency),
+              {currencyFormatter.format(getResult() / 100, {
+                code: _.toUpper(Default.currency),
               })}
             </Text>
           </View>
           <View style={[styles.amountContainer]}>
-            <Text style={styles.amountHeaderText}>Tax</Text>
-            <Text style={styles.amountText}>3%</Text>
+            <Text style={styles.amountHeaderText}>Tax ({Default.taxName})</Text>
+            <Text style={styles.amountText}>{Default.tax * 100}%</Text>
           </View>
           <View style={styles.amountContainer}>
             <Text style={[styles.amountHeaderText, styles.totalHeaderText]}>
               Total
             </Text>
-            <TouchableOpacity onPress={() => notInplement()}>
+            <TouchableOpacity
+              onPress={() =>
+                props.navigation.navigate('Checkout', 'Calculator')
+              }>
               <Text style={[styles.amountText, styles.totalText]}>
-                {currencyFormatter.format(result + result * tax, {
-                  code: _.toUpper(currency),
-                })}
+                {currencyFormatter.format(
+                  (getResult() + getResult() * Default.tax) / 100,
+                  {
+                    code: _.toUpper(Default.currency),
+                  },
+                )}
               </Text>
             </TouchableOpacity>
           </View>
@@ -164,37 +156,65 @@ export default function CalculatorScreen(props) {
 
         <View style={styles.inputContainer}>
           <View style={styles.iconContainer}>
-            <View style={GlobalStyles.row}>
-              <TouchableOpacity
-                onPress={() => {
-                  setShowModal(true);
-                  setModalType('history');
-                }}>
-                <CustomIconsComponent
-                  style={styles.historyIconStyle}
-                  type={'MaterialIcons'}
-                  color={Colors.grey}
-                  size={25}
-                  name={'history-toggle-off'}
-                />
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => {
-                  setShowModal(true);
-                  setModalType('note');
-                }}>
-                <CustomIconsComponent
-                  style={styles.iconStyle}
-                  type={'SimpleLineIcons'}
-                  color={Colors.grey}
-                  size={20}
-                  name={'note'}
-                />
-              </TouchableOpacity>
+            <TouchableOpacity
+              // disabled={!cartState?.cart?.quickPay?.length}
+              onPress={() => {
+                setShowModal(true);
+                setModalType('history');
+              }}>
+              <CustomIconsComponent
+                style={styles.historyIconStyle}
+                type={'MaterialIcons'}
+                color={
+                  cartState?.cart?.quickPay?.length
+                    ? Colors.primary
+                    : Colors.grey
+                }
+                size={25}
+                name={'history-toggle-off'}
+              />
+            </TouchableOpacity>
+            <View style={[GlobalStyles.row, styles.noteContainer]}>
+              {note ? (
+                <TouchableOpacity
+                  style={GlobalStyles.row}
+                  onPress={() => {
+                    setShowModal(true);
+                    setModalType('note');
+                  }}>
+                  <Text
+                    style={styles.noteTextStyle}
+                    ellipsizeMode="tail"
+                    numberOfLines={1}>
+                    {note}
+                  </Text>
+                  <CustomIconsComponent
+                    style={styles.iconStyle}
+                    type={'SimpleLineIcons'}
+                    color={Colors.primary}
+                    size={20}
+                    name={'note'}
+                  />
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity
+                  onPress={() => {
+                    setShowModal(true);
+                    setModalType('note');
+                  }}>
+                  <CustomIconsComponent
+                    style={styles.iconStyle}
+                    type={'SimpleLineIcons'}
+                    color={Colors.grey}
+                    size={20}
+                    name={'note'}
+                  />
+                </TouchableOpacity>
+              )}
             </View>
-            <Text style={styles.value}>
+            <Text style={styles.inputText}>
               {currencyFormatter.format(currVal, {
-                code: _.toUpper(currency),
+                code: _.toUpper(Default.currency),
                 precision: getPrecision(),
               })}
               {showDot()}
@@ -266,32 +286,23 @@ export default function CalculatorScreen(props) {
           </View>
         </View>
       </View>
-      <Modal
-        animationType="slide"
-        visible={showModal}
-        onRequestClose={() => {
-          setShowModal(false);
-        }}>
-        {modalType === 'history' ? (
-          <History
-            value={currVal}
-            history={history}
-            result={result}
-            closeModal={() => {
-              setShowModal(false);
-            }}
-          />
-        ) : (
-          <Note
-            value={currVal}
-            history={history}
-            result={result}
-            closeModal={() => {
-              setShowModal(false);
-            }}
-          />
-        )}
-      </Modal>
+      {modalType === 'history' ? (
+        <History
+          visible={showModal}
+          closeModal={() => {
+            setShowModal(false);
+          }}
+        />
+      ) : (
+        <Note
+          note={note}
+          visible={showModal}
+          closeModal={(note) => {
+            setNote(note);
+            setShowModal(false);
+          }}
+        />
+      )}
     </SafeAreaView>
   );
 }
@@ -300,8 +311,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     backgroundColor: Colors.white,
     justifyContent: 'space-around',
-    marginHorizontal: 10,
-    marginVertical: 10,
+    margin: 10,
     borderRadius: 20,
     elevation: 2,
     shadowOffset: {
@@ -311,13 +321,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 2.62,
   },
-  zeroRow: {
-    width: screen.height / 4 - 20,
-  },
-  value: {
+  inputText: {
     color: Colors.greyText,
     fontSize: 34,
-    textAlign: 'center',
   },
   amountContainer: {
     alignItems: 'center',
@@ -342,7 +348,6 @@ const styles = StyleSheet.create({
   },
   iconContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     margin: 3,
   },
   iconStyle: {
@@ -359,5 +364,15 @@ const styles = StyleSheet.create({
   totalText: {
     color: Colors.primary,
     fontWeight: 'bold',
+  },
+  noteTextStyle: {
+    fontSize: 16,
+    paddingTop: 13,
+    paddingLeft: 5,
+  },
+  noteContainer: {
+    flexGrow: 1,
+    flexShrink: 1,
+    marginRight: 30,
   },
 });

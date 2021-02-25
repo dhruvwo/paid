@@ -19,11 +19,13 @@ const invoices = async (
       filter_customer: filter_customer,
       created: created,
       status: status,
-      dueDate: dueDate,
     },
   };
   if (startAfter) {
     params['startAfter'] = startAfter;
+  }
+  if (status === 'open') {
+    params['filterData']['due_date'] = dueDate;
   }
 
   return axios
@@ -54,7 +56,23 @@ const sendInvoice = async (data) => {
     });
 };
 
+const quickPay = async (data) => {
+  return axios
+    .request({
+      method: 'POST',
+      url: `${API_URL}/billing/payments/pay-now`,
+      data,
+    })
+    .then((res) => {
+      return Promise.resolve(res.data);
+    })
+    .catch((error) => {
+      return Promise.reject(error);
+    });
+};
+
 export const invoice = {
   invoices,
   sendInvoice,
+  quickPay,
 };

@@ -10,6 +10,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
 import Entypo from 'react-native-vector-icons/Entypo';
+import EvilIcons from 'react-native-vector-icons/EvilIcons';
 
 export default class CustomIconsComponent extends React.Component {
   render() {
@@ -118,6 +119,19 @@ export default class CustomIconsComponent extends React.Component {
       case 'Entypo':
         return (
           <Entypo
+            style={[
+              props.style ? props.style : {},
+              {
+                fontSize: props.size || 25,
+                color: props.color || Colors.primary,
+              },
+            ]}
+            name={props.name}
+          />
+        );
+      case 'EvilIcons':
+        return (
+          <EvilIcons
             style={[
               props.style ? props.style : {},
               {

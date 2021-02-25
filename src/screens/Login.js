@@ -20,11 +20,12 @@ import {authAction} from '../store/actions/auth';
 
 export default function Login(props) {
   const dispatch = useDispatch();
-  const [email, setEmail] = useState('hofel64825@agilekz.com');
-  const [password, setPassword] = useState('Paid123!');
+  const [email, setEmail] = useState(''); //hofel64825@agilekz.com
+  const [password, setPassword] = useState(''); //Paid123!
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoginLoader, setIsLoginLoader] = useState(false);
 
+  console.log('login called');
   const notInplement = () => {
     return Alert.alert(``, `Not Implemented Yet!`, [
       {
@@ -39,16 +40,16 @@ export default function Login(props) {
     await dispatch(authAction.getServiceKey());
     const loginData = await dispatch(authAction.login(email, password));
     // console.log('Login data', loginData);
-    if (loginData.status === 'success') {
+    if (loginData?.status === 'success') {
       await dispatch(authAction.getUserSetup());
       setIsLoginLoader(false);
       props.navigation.replace('DrawerNavigator');
     }
-    if (loginData.data.status === 'failed') {
+    if (loginData?.data?.status === 'failed') {
       setErrorMessage(loginData.data.error);
       setIsLoginLoader(false);
     }
-    if (loginData.status === 'failed') {
+    if (loginData?.status === 'failed') {
       setErrorMessage(loginData.error);
       setIsLoginLoader(false);
     }
@@ -62,7 +63,7 @@ export default function Login(props) {
         contentContainerStyle={styles.scrollContainerStyle}
         scrollEnabled={false}
         keyboardShouldPersistTaps="handled">
-        <View style={styles.headerContainer}>
+        {/* <View style={styles.headerContainer}>
           <LinearGradient
             start={{x: 0.3, y: 0}}
             end={{x: 1, y: 0}}
@@ -73,7 +74,7 @@ export default function Login(props) {
             end={{x: 1, y: 0}}
             colors={[Colors.primary, Colors.secondary]}
             style={styles.headerColorSecondaryContainer}></LinearGradient>
-        </View>
+        </View> */}
         <SvgImageViewer
           LocalIcon={LocalIcons.svgIconSet.logo}
           height={styles.logoStyle.height}
@@ -104,6 +105,7 @@ export default function Login(props) {
               type={'AntDesign'}
               color={Colors.primary}
               name={'lock'}
+              size={27}
             />
             <TextInput
               style={styles.inputLabel}
@@ -121,8 +123,31 @@ export default function Login(props) {
               <View />
             )}
           </View>
+          <TouchableOpacity
+            style={[
+              GlobalStyles.secondaryButtonContainer,
+              styles.buttonContainer,
+              !(email && password) ? {opacity: 0.6} : '',
+            ]}
+            disabled={!(email && password)}
+            onPress={() => onSubmit()}>
+            {isLoginLoader ? (
+              <ActivityIndicator
+                color={Colors.white}
+                size={25}
+                style={styles.loaderIcon}
+              />
+            ) : (
+              <View>
+                <Text
+                  style={[GlobalStyles.secondaryButtonText, styles.loginText]}>
+                  {'Login'}
+                </Text>
+              </View>
+            )}
+          </TouchableOpacity>
         </View>
-        <LinearGradient
+        {/* <LinearGradient
           start={{x: 0.4, y: 0}}
           end={{x: 1, y: 0}}
           style={[
@@ -130,23 +155,31 @@ export default function Login(props) {
             styles.buttonContainer,
             !email && !password ? {opacity: 0.6} : '',
           ]}
-          colors={[Colors.primary, Colors.secondary]}>
-          <TouchableOpacity
-            disabled={!email && !password}
-            onPress={() => onSubmit()}>
-            {isLoginLoader ? (
-              <ActivityIndicator
-                color={Colors.white}
-                size={28}
-                style={styles.loaderIcon}
-              />
-            ) : (
-              <View>
-                <Text style={GlobalStyles.buttonText}>{'Login'}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-        </LinearGradient>
+          colors={[Colors.primary, Colors.secondary]}> */}
+        {/* <TouchableOpacity
+          style={[
+            GlobalStyles.secondaryButtonContainer,
+            styles.buttonContainer,
+            !email && !password ? {opacity: 0.6} : '',
+          ]}
+          disabled={!email && !password}
+          onPress={() => onSubmit()}>
+          {isLoginLoader ? (
+            <ActivityIndicator
+              color={Colors.white}
+              size={25}
+              style={styles.loaderIcon}
+            />
+          ) : (
+            <View>
+              <Text
+                style={[GlobalStyles.secondaryButtonText, styles.loginText]}>
+                {'Login'}
+              </Text>
+            </View>
+          )}
+        </TouchableOpacity>
+        </LinearGradient> */}
         <View style={styles.forgotPasswordContainer}>
           <TouchableOpacity onPress={() => notInplement()}>
             <View style={styles.loginContainer}>
@@ -155,16 +188,14 @@ export default function Login(props) {
           </TouchableOpacity>
           <View style={styles.signUpContainer}>
             <Text style={styles.containerText}>Don't have an account ?</Text>
-            <TouchableOpacity onPress={() => notInplement()}>
-              <View style={styles.loginContainer}>
-                <Text style={GlobalStyles.secondaryButtonText}>
-                  {'Sign up'}
-                </Text>
-              </View>
+            <TouchableOpacity
+              style={styles.signUpText}
+              onPress={() => notInplement()}>
+              <Text style={GlobalStyles.buttonText}>{'Sign up'}</Text>
             </TouchableOpacity>
           </View>
         </View>
-        <View style={{flex: 2, flexDirection: 'row-reverse'}}>
+        {/* <View style={{flex: 2, flexDirection: 'row-reverse'}}>
           <LinearGradient
             start={{x: 0, y: 0}}
             end={{x: 0.5, y: 0}}
@@ -175,7 +206,7 @@ export default function Login(props) {
             end={{x: 0.5, y: 0}}
             colors={[Colors.secondary, Colors.primary]}
             style={styles.bottomColorSecondaryContainer}></LinearGradient>
-        </View>
+        </View> */}
       </KeyboardAwareScrollView>
     </View>
   );
@@ -231,12 +262,13 @@ const styles = StyleSheet.create({
   },
   scrollContainerStyle: {
     flexGrow: 1,
+    justifyContent: 'center',
   },
   modalContainer: {
     flexDirection: 'column',
     backgroundColor: Colors.white,
     marginHorizontal: 20,
-    borderRadius: 10,
+    borderRadius: 6,
     elevation: 1,
     shadowOffset: {
       width: 2,
@@ -244,7 +276,7 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.15,
     shadowRadius: 2.62,
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingVertical: 15,
   },
   inputContainer: {
@@ -253,10 +285,12 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     marginHorizontal: 10,
     borderColor: '#E4E1E1',
+    // backgroundColor: 'blue',
   },
   inputIcon: {
-    paddingTop: 18,
+    height: 50,
     paddingHorizontal: 10,
+    paddingTop: 18,
   },
   inputLabel: {
     minHeight: 50,
@@ -273,7 +307,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   loaderIcon: {
-    padding: 5,
     backgroundColor: 'transparent',
   },
   touchableText: {
@@ -299,10 +332,14 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-end',
     alignSelf: 'center',
     width: '90%',
+    borderWidth: 0,
   },
   signUpContainer: {
     flexDirection: 'row',
     alignSelf: 'center',
+  },
+  signUpText: {
+    justifyContent: 'center',
   },
   forgotPasswordContainer: {paddingTop: 40},
 });

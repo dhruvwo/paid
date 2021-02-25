@@ -14,4 +14,9 @@ export default {
   orange: '#F4AC58',
   lightGrey: '#F6F6F6',
   borderLightGrey: '#D2D2D2',
+
+  paid: '#71c016',
+  sent: '#17a2b8',
+  overdue: '#ffc107',
+  draft: '#8F8F8F',
 };

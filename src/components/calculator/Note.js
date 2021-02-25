@@ -1,97 +1,80 @@
 import React from 'react';
 import {
-  View,
   TouchableOpacity,
   Text,
   StyleSheet,
   TextInput,
-  SafeAreaView,
+  Modal,
 } from 'react-native';
 import Colors from '../../constants/Colors';
-import CustomIconsComponent from '../CustomIcons';
 import GlobalStyles from '../../constants/GlobalStyles';
-import {cartAction} from '../../store/actions';
-import {useDispatch, useSelector} from 'react-redux';
 import * as _ from 'lodash';
 import {useState} from 'react/cjs/react.development';
+import Header from '../Header';
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 
 export default function Note(props) {
-  const dispatch = useDispatch();
-  const cartState = useSelector(({cart}) => {
-    return {
-      cart,
-    };
-  });
-  const [note, setNote] = useState('');
-
-  const updateCart = async (current) => {
-    const data = {
-      id: 'quickPay' + history.length,
-      product: {type: 'quick Pay', note: note},
-      price: current * 100,
-    };
-    console.log('data', data);
-    // await dispatch(cartAction.updateCart(data));
-  };
+  const [note, setNote] = useState(props.note);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <TouchableOpacity
-        style={styles.backBtn}
-        onPress={() => {
-          props.closeModal();
-        }}>
-        <CustomIconsComponent
-          name={'chevron-back'}
-          type={'Ionicons'}
-          color={Colors.darkGrey}
-          size={40}
+    <Modal
+      animationType="slide"
+      visible={props.visible}
+      onRequestClose={() => {
+        props.closeModal(note);
+      }}>
+      <Header
+        navigation={props.navigation}
+        title="Note"
+        close={() => props.closeModal(note)}
+      />
+      <KeyboardAwareScrollView
+        style={GlobalStyles.flexStyle}
+        contentContainerStyle={styles.container}
+        keyboardShouldPersistTaps="handled">
+        <TextInput
+          style={styles.noteContainer}
+          multiline={true}
+          placeholder="Note"
+          value={note}
+          onChangeText={(note) => setNote(note)}
         />
-      </TouchableOpacity>
-      <View
-        style={{
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          borderWidth: 1,
-          borderColor: Colors.greyText,
-          borderRadius: 50,
-          paddingHorizontal: 20,
-        }}>
-        <View style={GlobalStyles.row}>
-          <CustomIconsComponent
-            style={styles.iconStyle}
-            type={'SimpleLineIcons'}
-            color={Colors.grey}
-            size={20}
-            name={'note'}
-          />
-          <TextInput
-            style={styles.inputLabel}
-            underlineColorAndroid="transparent"
-            placeholder="Rembember me"
-            // value={note}
-            // onChangeText={(note) => setNote(note)}
-          />
-        </View>
-        <TouchableOpacity style={styles.noteStyle}>
-          <Text style={styles.noteText}>Note</Text>
+        <TouchableOpacity
+          disabled={!note}
+          style={[GlobalStyles.secondaryButtonContainer, styles.btnStyle]}
+          onPress={() => props.closeModal(note)}>
+          <Text style={GlobalStyles.secondaryButtonText}>Save</Text>
         </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+      </KeyboardAwareScrollView>
+    </Modal>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: 20,
+    flexGrow: 1,
+    backgroundColor: Colors.bgColor,
+    justifyContent: 'space-between',
   },
-  noteStyle: {
-    padding: 12,
-    flexDirection: 'row',
+  iconStyle: {
+    alignContent: 'center',
+    alignItems: 'center',
+    paddingTop: 12,
   },
-  noteText: {
-    color: Colors.primary,
-    fontSize: 14,
-    paddingVertical: 2,
+  noteContainer: {
+    borderRadius: 10,
+    margin: 10,
+    minHeight: 200,
+    backgroundColor: Colors.white,
+    elevation: 2,
+    shadowOffset: {
+      width: 2,
+      height: 2,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 2.62,
+  },
+  btnStyle: {
+    borderRadius: 0,
   },
 });

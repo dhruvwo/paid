@@ -7,9 +7,10 @@ import {
   TextInput,
   FlatList,
   ActivityIndicator,
+  Modal,
+  RefreshControl,
 } from 'react-native';
 import Colors from '../../constants/Colors';
-import {SafeAreaView} from 'react-native-safe-area-context';
 import GlobalStyles from '../../constants/GlobalStyles';
 import CustomIconsComponent from '../CustomIcons';
 import {customerAction} from '../../store/actions';
@@ -17,6 +18,7 @@ import {useSelector, useDispatch} from 'react-redux';
 import Default from '../../constants/Default';
 import * as _ from 'lodash';
 import AddCustomer from './AddCustomer';
+import Header from '../Header';
 
 export default function Customer(props) {
   const dispatch = useDispatch();
@@ -48,13 +50,11 @@ export default function Customer(props) {
     if (searchText) {
       setStart(0);
       getCustomer();
-      console.log('searchText', searchText);
     }
   }, [searchText]);
 
   const getCustomer = async () => {
     setIsLoading(true);
-    console.log('getCustomer searchText', searchText);
     await dispatch(customerAction.getCustomers(accountId, searchText, start));
     setIsLoading(false);
   };
@@ -68,13 +68,7 @@ export default function Customer(props) {
 
   const handleLoadMore = async () => {
     let startIndex = _.cloneDeep(start);
-    // console.log('handle more called**');
-    // have to start condition back when API return total
-    if (
-      !onEndReachedCalledDuringMomentum
-      // &&
-      // startIndex + Default.perPageLimit < customerState.customer.total
-    ) {
+    if (!onEndReachedCalledDuringMomentum && customerState.customer.hasMore) {
       setIsLoadMoreLoader(true);
       setStart(startIndex + Default.perPageLimit);
       await dispatch(
@@ -90,37 +84,57 @@ export default function Customer(props) {
   };
 
   const renderItem = (item, index) => {
-    // console.log('item', item, props);
     return (
       <TouchableOpacity
         onPress={() => props.closeModal(item)}
         key={item.customerId}>
-        <View style={[GlobalStyles.row, styles.customerContainer]}>
-          <View style={[GlobalStyles.row]}>
-            <View>
-              <Text style={styles.customerName}>
-                {item.metadata.first_name} {item.metadata.last_name}
+        <View style={styles.customerContainer}>
+          <View style={styles.detailContainer}>
+            <Text
+              style={styles.customerName}
+              ellipsizeMode="tail"
+              numberOfLines={1}>
+              {item.metadata.first_name} {item.metadata.last_name}
+            </Text>
+            <Text
+              style={styles.customerDetail}
+              ellipsizeMode="tail"
+              numberOfLines={1}>
+              {item.email}
+            </Text>
+            {item.metadata.business_name && (
+              <Text
+                style={styles.customerDetail}
+                ellipsizeMode="tail"
+                numberOfLines={1}>
+                {item.metadata.business_name}
               </Text>
-              <Text style={styles.customerName}>{item.email}</Text>
-              <Text>{item.metadata.business_name}</Text>
-              {item.phone && <Text>{item.phone}</Text>}
-            </View>
+            )}
+            {item.phone && (
+              <Text
+                style={styles.customerDetail}
+                ellipsizeMode="tail"
+                numberOfLines={1}>
+                {item.phone}
+              </Text>
+            )}
           </View>
-          {item.paymentMethod && (
-            <View>
-              <CustomIconsComponent
-                name={
-                  item.paymentMethod.brand === 'mastercard'
-                    ? 'cc-mastercard'
-                    : 'credit-card'
-                }
-                type={'FontAwesome'}
-                size={50}
-                color={Colors.secondary}
-              />
-              <Text>**** {item.paymentMethod.last4}</Text>
-            </View>
-          )}
+
+          <View style={styles.cardContainer}>
+            {item.paymentMethod && (
+              <>
+                <CustomIconsComponent
+                  name={'credit-card'}
+                  type={'FontAwesome'}
+                  size={40}
+                  color={Colors.secondary}
+                />
+                <Text style={styles.cartText}>
+                  ** {item.paymentMethod.last4}
+                </Text>
+              </>
+            )}
+          </View>
         </View>
       </TouchableOpacity>
     );
@@ -130,9 +144,9 @@ export default function Customer(props) {
     return (
       <View>
         {isLoading ? (
-          <ActivityIndicator size="large" color={Colors.primary} />
+          <ActivityIndicator size="small" color={Colors.primary} />
         ) : (
-          <Text style={styles.noDataFound}>No customer</Text>
+          <Text style={styles.footerText}>No customer</Text>
         )}
       </View>
     );
@@ -143,9 +157,9 @@ export default function Customer(props) {
       !isLoading && (
         <View>
           {isLoadMoreLoader ? (
-            <ActivityIndicator size="large" color={Colors.greyText} />
+            <ActivityIndicator size="small" color={Colors.primary} />
           ) : (
-            start + Default.perPageLimit <= customerState.customer.total && (
+            !customerState.customer.hasMore && (
               <Text style={styles.footerText}>No more customer</Text>
             )
           )}
@@ -154,12 +168,20 @@ export default function Customer(props) {
     );
   };
 
-  return showAddModal ? (
-    <AddCustomer closeModal={() => setShowAddModal(false)} />
-  ) : (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.searchContainer}>
-        <View style={GlobalStyles.row}>
+  return (
+    <Modal
+      visible={props.visible}
+      animationType="slide"
+      onRequestClose={() => {
+        props.closeModal();
+      }}>
+      <View style={styles.container}>
+        <Header
+          navigation={props.navigation}
+          title="Customers"
+          close={() => props.closeModal()}
+        />
+        <View style={styles.searchContainer}>
           <CustomIconsComponent
             style={styles.searchIcon}
             type={'AntDesign'}
@@ -173,22 +195,26 @@ export default function Customer(props) {
             value={searchText}
             onChangeText={(txt) => setSearchText(txt)}
           />
+          <TouchableOpacity onPress={() => setShowAddModal(true)}>
+            <CustomIconsComponent
+              style={styles.searchIcon}
+              type={'Feather'}
+              color={Colors.primary}
+              name={'user-plus'}
+            />
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity onPress={() => setShowAddModal(true)}>
-          <CustomIconsComponent
-            style={styles.searchIcon}
-            type={'Feather'}
-            color={Colors.primary}
-            name={'user-plus'}
-          />
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.customerMainContainer}>
         <FlatList
+          keyboardShouldPersistTaps={'handled'}
+          contentContainerStyle={styles.customerMainContainer}
           data={customerState.customer.customers}
-          refreshing={refresh}
-          onRefresh={onRefresh}
+          refreshControl={
+            <RefreshControl
+              refreshing={refresh}
+              onRefresh={onRefresh}
+              colors={[Colors.primary]}
+            />
+          }
           onEndReachedThreshold={0.5}
           onMomentumScrollBegin={() =>
             setOnEndReachedCalledDuringMomentum(false)
@@ -200,55 +226,72 @@ export default function Customer(props) {
           ListEmptyComponent={() => renderEmptyComponent()}
         />
       </View>
-    </SafeAreaView>
+      <AddCustomer
+        visible={showAddModal}
+        closeModal={() => setShowAddModal(false)}
+      />
+    </Modal>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     backgroundColor: Colors.bgColor,
-  },
-  header: {
-    color: Colors.primary,
-    fontSize: 32,
-    fontWeight: 'bold',
-    textAlign: 'center',
+    flexGrow: 1,
   },
   searchContainer: {
-    marginTop: 2,
     flexDirection: 'row',
-    borderWidth: 1,
     backgroundColor: Colors.white,
-    borderColor: '#E4E1E1',
-    marginHorizontal: 4,
-    justifyContent: 'space-between',
-  },
-  searchInput: {
-    minHeight: 50,
-    height: 50,
-    fontSize: 17,
-    fontWeight: '700',
-    paddingHorizontal: 4,
+    elevation: 2,
+    shadowOffset: {
+      width: 2,
+      height: 2,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 2.62,
   },
   searchIcon: {
-    paddingTop: 12,
-    paddingHorizontal: 8,
-    alignSelf: 'flex-end',
+    padding: 12,
+  },
+  searchInput: {
+    flexGrow: 1,
+    flexShrink: 1,
+    fontSize: 16,
+    paddingHorizontal: 10,
   },
   customerMainContainer: {
-    paddingBottom: 120,
+    paddingBottom: 150,
   },
   customerContainer: {
+    flexDirection: 'row',
     marginVertical: 4,
-    marginHorizontal: 10,
+    marginHorizontal: 6,
     backgroundColor: Colors.white,
     padding: 10,
-    justifyContent: 'space-between',
+  },
+  detailContainer: {
+    flexGrow: 1,
+    flexShrink: 1,
+    justifyContent: 'center',
   },
   customerName: {
-    fontSize: 20,
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   customerDetail: {
-    fontSize: 16,
+    fontSize: 15,
+  },
+  cardContainer: {
+    minWidth: 55,
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+  },
+  cartText: {
+    fontSize: 14,
+  },
+  footerText: {
+    fontSize: 14,
+    paddingVertical: 10,
+    textAlign: 'center',
   },
 });

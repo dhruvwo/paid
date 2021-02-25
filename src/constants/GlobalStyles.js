@@ -7,28 +7,34 @@ const GlobalStyles = StyleSheet.create({
     justifyContent: 'center',
   },
   buttonContainer: {
-    backgroundColor: Colors.primary,
-    borderRadius: 25,
-    paddingHorizontal: 30,
     justifyContent: 'center',
-    height: 50,
+    padding: 10,
+    borderRadius: 5,
+    backgroundColor: Colors.white,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+    elevation: 1,
+    shadowOffset: {
+      width: 2,
+      height: 2,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 2.62,
   },
   buttonText: {
-    color: Colors.white,
+    color: Colors.primary,
     fontWeight: 'bold',
     fontSize: 18,
     textAlign: 'center',
   },
   buttonDisabledContainer: {
-    opacity: 0.5,
-    backgroundColor: Colors.grey,
+    opacity: 0.6,
+    // backgroundColor: Colors.greyText,
   },
   secondaryButtonContainer: {
     justifyContent: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+    padding: 10,
     borderRadius: 5,
-    backgroundColor: '#fff',
     backgroundColor: Colors.primary,
     elevation: 1,
     shadowOffset: {
@@ -41,7 +47,7 @@ const GlobalStyles = StyleSheet.create({
   secondaryButtonText: {
     color: Colors.white,
     fontWeight: 'bold',
-    fontSize: 20,
+    fontSize: 18,
     textAlign: 'center',
   },
   flexStyle: {

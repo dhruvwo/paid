@@ -4,7 +4,7 @@ import {ActivityIndicator, View} from 'react-native';
 import Colors from '../constants/Colors';
 import {authAction} from '../store/actions';
 import {useDispatch} from 'react-redux';
-// import SplashScreen from 'react-native-splash-screen';
+import SplashScreen from 'react-native-splash-screen';
 
 export default function AuthLoadingScreen(props) {
   const dispatch = useDispatch();
@@ -24,7 +24,7 @@ export default function AuthLoadingScreen(props) {
         dispatch(authAction.setUser(authenticationResponse));
         dispatch(authAction.setUserSetup(userSetup));
       }
-      //   SplashScreen.hide();
+      SplashScreen.hide();
       let pageName = 'Login';
       if (authenticationResponse && authenticationResponse.token) {
         pageName = 'DrawerNavigator';

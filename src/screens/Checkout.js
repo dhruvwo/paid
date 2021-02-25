@@ -1,15 +1,13 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   SafeAreaView,
   StyleSheet,
-  FlatList,
-  Modal,
+  Keyboard,
   Alert,
   ActivityIndicator,
-  Platform,
 } from 'react-native';
 import GlobalStyles from '../constants/GlobalStyles';
 import Colors from '../constants/Colors';
@@ -25,6 +23,8 @@ import ProductDetailModal from '../components/ProductDetail';
 import Default from '../constants/Default';
 import moment from 'moment';
 import ToastService from '../services/Toast';
+import QuantityComponent from '../components/Quantity';
+import {KeyboardAwareFlatList} from 'react-native-keyboard-aware-scroll-view';
 
 export default function Checkout(props) {
   const dispatch = useDispatch();
@@ -38,12 +38,37 @@ export default function Checkout(props) {
   });
 
   const stripeDetails = cartState?.auth?.userSetup?.payments?.stripeDetails;
-
+  const data =
+    props.route.params === 'Product'
+      ? cartState.cart.products
+      : cartState.cart.quickPay;
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingPay, setIsLoadingPay] = useState(false);
   const [customer, setCustomer] = useState({});
   const [showCustomerModal, setShowCustomerModal] = useState(false);
   const [showProductDetailModal, setShowProductDetailModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState('');
+  const [error, setError] = useState('');
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      'keyboardDidShow',
+      () => {
+        setIsKeyboardVisible(true);
+      },
+    );
+    const keyboardDidHideListener = Keyboard.addListener(
+      'keyboardDidHide',
+      () => {
+        setIsKeyboardVisible(false);
+      },
+    );
+    return () => {
+      keyboardDidHideListener.remove();
+      keyboardDidShowListener.remove();
+    };
+  }, []);
 
   const sendInvoice = async () => {
     setIsLoading(true);
@@ -60,60 +85,111 @@ export default function Checkout(props) {
       due_date: moment().format('YYYY-MM-DD HH:mm:ss'),
       terms: 'due',
     };
-    // console.log('data', data);
     const invoice = await dispatch(invoiceAction.sendInvoice(data));
     if (invoice.status === 'success') {
       setIsLoading(false);
+      dispatch(cartAction.clearCart());
+      props.navigation.navigate('Products');
+      ToastService({
+        message: 'Invoice send successfully !',
+      });
     } else {
       ToastService({
         message: invoice.data.message,
       });
+      setError(invoice.data.message);
       setIsLoading(false);
+    }
+  };
+
+  const sendQuickPayInvoice = async () => {
+    setIsLoadingPay(true);
+    const data = {
+      accountId: stripeDetails.accountId,
+      companyId: stripeDetails.companyId,
+      amount: getTotal() + getTotal() * Default.tax,
+      email: customer.email,
+      customer: customer.customerId,
+      currency: Default.currency,
+      paymentMethod: customer.paymentMethod.id,
+    };
+    const pay = await dispatch(invoiceAction.sendQuickPayInvoice(data));
+    if (pay.status === 'success') {
+      setIsLoadingPay(false);
+      props.route.params === 'Product'
+        ? dispatch(cartAction.clearCart())
+        : dispatch(cartAction.clearQuickPay());
+      props.navigation.navigate('Home');
+      ToastService({
+        message: 'Paid successfully !',
+      });
+    } else {
+      setError(pay.data.message);
+      ToastService({
+        message: pay.data.message,
+      });
+      setIsLoadingPay(false);
     }
   };
 
   const getProductItemsArray = () => {
     let arry = [];
-    cartState.cart.products.map((val, i) => {
+    data.map((val, i) => {
       arry.push({price: val.priceId, quantity: val.qty});
     });
     return arry;
   };
 
   const getCustomer = (customer) => {
+    if (customer) {
+      setCustomer(customer);
+      if (!customer?.paymentMethod?.id) {
+        setError('To enable quick pay, fill you cart details.');
+      } else {
+        setError('');
+      }
+    }
     setShowCustomerModal(false);
-    setCustomer(customer);
-  };
-
-  const updateCart = async (item, operator) => {
-    item.qty = operator === '+' ? item.qty + 1 : item.qty - 1;
-    await dispatch(cartAction.updateCart(item));
-  };
-
-  const deleteProduct = (id) => {
-    Alert.alert('', 'Do you really want to remove product from cart', [
-      {
-        text: 'yes',
-        onPress: () => {
-          dispatch(cartAction.removeProduct(id));
-        },
-      },
-      {
-        text: 'Cancel',
-        style: 'cancel',
-      },
-    ]);
   };
 
   const getTotal = () => {
     let add = 0;
-    cartState.cart.products.map((val, i) => {
+    data.map((val, i) => {
       add += val.price * val.qty;
     });
     return add;
   };
 
-  const renderItem = (item, index) => {
+  const updateCart = async (item) => {
+    await dispatch(cartAction.updateCart(item));
+  };
+
+  const deleteProduct = (id) => {
+    Alert.alert(
+      '',
+      `${
+        'Do you really want to remove this ' +
+        (props.route.params === 'Product' ? 'product' : 'payment') +
+        ' from cart?'
+      }`,
+      [
+        {
+          text: 'yes',
+          onPress: () => {
+            props.route.params === 'Product'
+              ? dispatch(cartAction.removeProduct(id))
+              : dispatch(cartAction.removeQuickPay(id));
+          },
+        },
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+      ],
+    );
+  };
+
+  const renderProductItem = (item, index) => {
     return (
       <TouchableOpacity
         style={styles.productContainer}
@@ -122,180 +198,201 @@ export default function Checkout(props) {
           setShowProductDetailModal(true);
           setSelectedProduct(item.product);
         }}>
-        <View style={GlobalStyles.row}>
-          <View style={[GlobalStyles.row, styles.imageContainer]}>
-            <FastImage
-              style={styles.productImage}
-              resizeMode={'cover'}
-              source={require('../assets/products/product2.png')}
-            />
-          </View>
-          <View style={styles.productDetailContainer}>
-            <View style={styles.titleIconContainer}>
-              <Text style={styles.productName}>{item.product.name}</Text>
-              <TouchableOpacity
-                style={styles.deleteContainer}
-                onPress={() => deleteProduct(item.id)}>
-                <CustomIconsComponent
-                  name={'delete-outline'}
-                  type={'MaterialCommunityIcons'}
-                  color={Colors.red}
-                />
-              </TouchableOpacity>
-            </View>
-            <Text style={styles.productPrice}>
-              {currencyFormatter.format((item.price / 100) * item.qty, {
-                code: _.toUpper(Default.currency),
-              })}
-            </Text>
-            <View style={[GlobalStyles.row, styles.quantityContainer]}>
-              <View style={[styles.qtyContainer]}>
-                <TouchableOpacity
-                  style={styles.qtyBtn('-')}
-                  onPress={() => {
-                    item.qty > 1 && updateCart(item, '-');
-                  }}>
-                  <CustomIconsComponent
-                    name={'minus'}
-                    size={25}
-                    col
-                    type={'Entypo'}
-                  />
-                </TouchableOpacity>
-                <Text
-                  style={[
-                    styles.qtyText,
-                    {
-                      marginHorizontal: 10,
-                    },
-                  ]}>
-                  {item.qty}
-                </Text>
-                <TouchableOpacity
-                  style={styles.qtyBtn('+')}
-                  onPress={() => {
-                    updateCart(item, '+');
-                    // setQty(qty + 1);
-                  }}>
-                  <CustomIconsComponent
-                    name={'add'}
-                    size={25}
-                    col
-                    type={'MaterialIcons'}
-                  />
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
+        <FastImage
+          style={styles.productImage}
+          resizeMode={'cover'}
+          source={require('../assets/products/product6.png')}
+        />
+        <View style={styles.productDetailContainer}>
+          <Text style={styles.productName}>{item.product.name}</Text>
+          <Text style={styles.productPrice}>
+            {currencyFormatter.format((item.price / 100) * item.qty, {
+              code: _.toUpper(Default.currency),
+            })}
+          </Text>
+          <QuantityComponent
+            item={item}
+            deleteProduct={(id) => deleteProduct(id)}
+            getQuantity={(data) => updateCart(data)}
+          />
         </View>
-        <View></View>
+        <TouchableOpacity onPress={() => deleteProduct(item.id)}>
+          <CustomIconsComponent
+            name={'delete-outline'}
+            type={'MaterialCommunityIcons'}
+            color={Colors.red}
+          />
+        </TouchableOpacity>
       </TouchableOpacity>
+    );
+  };
+
+  const renderQuickPayItem = (item, index) => {
+    return (
+      <View style={styles.productContainer} key={item.id}>
+        <View style={styles.productDetailContainer}>
+          <Text style={styles.productName}>
+            {currencyFormatter.format((item.price / 100) * item.qty, {
+              code: _.toUpper(Default.currency),
+            })}
+          </Text>
+          {item.product.note ? (
+            <Text style={styles.productPrice}>{item.product.note}</Text>
+          ) : (
+            <></>
+          )}
+        </View>
+        <TouchableOpacity onPress={() => deleteProduct(item.id)}>
+          <CustomIconsComponent
+            name={'delete-outline'}
+            type={'MaterialCommunityIcons'}
+            color={Colors.red}
+          />
+        </TouchableOpacity>
+      </View>
     );
   };
 
   const renderEmptyComponent = () => {
     return (
-      <View>
-        <Text style={styles.noDataFound}>Cart is empty</Text>
+      <View style={styles.emptyContainer}>
+        <Text style={styles.footerText}>Cart is empty.</Text>
+        <TouchableOpacity
+          style={GlobalStyles.secondaryButtonContainer}
+          onPress={() => {
+            const navPage =
+              props.route.params === 'Product' ? 'Products' : 'Quick Pay';
+            props.navigation.navigate(navPage);
+          }}>
+          <Text style={GlobalStyles.secondaryButtonText}>
+            {props.route.params === 'Product'
+              ? 'Go to product'
+              : 'Go to quick pay'}
+          </Text>
+        </TouchableOpacity>
       </View>
     );
   };
 
-  const renderFooterComponent = () => {
+  const renderHeader = () => {
     return (
-      <View style={[styles.totalView]}>
-        <View
-          style={[
-            GlobalStyles.row,
-            styles.priceDetailContainer,
-            {marginVertical: 0},
-          ]}>
-          <Text style={styles.taxText}>Total MRP</Text>
-          <Text style={styles.billProductPrice}>
-            {currencyFormatter.format(getTotal() / 100, {
-              code: _.toUpper(Default.currency),
-            })}
+      <TouchableOpacity
+        style={styles.customerContainer}
+        onPress={() => setShowCustomerModal(true)}>
+        {_.isEmpty(customer) ? (
+          <Text style={styles.selectCustomerText(!_.isEmpty(customer))}>
+            Select customer
           </Text>
-        </View>
-        <View style={[GlobalStyles.row, styles.priceDetailContainer]}>
-          <Text style={styles.taxText}>
-            Tax ({Default.tax * 100}% {Default.taxName})
-          </Text>
-          <Text style={styles.billProductPrice}>
-            {currencyFormatter.format((getTotal() * Default.tax) / 100, {
-              code: _.toUpper(Default.currency),
-            })}
-          </Text>
-        </View>
-        <View style={[GlobalStyles.row, styles.totalAmountContainer]}>
-          <View style={styles.totalContainer}>
-            <Text style={styles.totalText}>Total Amount </Text>
-            <Text style={styles.totalText}>
-              {currencyFormatter.format(
-                (getTotal() + getTotal() * Default.tax) / 100,
-                {
-                  code: _.toUpper(Default.currency),
-                },
-              )}
-            </Text>
-          </View>
-        </View>
-      </View>
+        ) : (
+          <>
+            <View>
+              <Text style={styles.selectCustomerText(!_.isEmpty(customer))}>
+                {`${
+                  customer?.metadata?.first_name +
+                  `` +
+                  customer?.metadata?.last_name +
+                  (customer?.metadata?.business_name
+                    ? ` (` + customer?.metadata?.business_name + `) `
+                    : '')
+                }`}
+              </Text>
+              <Text style={styles.selectCustomerText(!_.isEmpty(customer))}>
+                {customer?.email}
+              </Text>
+            </View>
+            <Text style={styles.changeText}>CHANGE</Text>
+          </>
+        )}
+      </TouchableOpacity>
     );
   };
 
-  return (
-    <SafeAreaView style={GlobalStyles.mainView}>
-      <Header navigation={props.navigation} />
-      {cartState?.cart?.products?.length ? (
-        <View style={styles.container}>
-          <View style={styles.customerContainer}>
-            <TouchableOpacity
-              style={[styles.productContainer, styles.selectProductContainer]}
-              disabled={!_.isEmpty(customer)}
-              onPress={() => setShowCustomerModal(true)}>
-              <Text style={styles.selectCustomerText(!_.isEmpty(customer))}>
-                {_.isEmpty(customer)
-                  ? 'Select customer'
-                  : customer?.metadata?.business_name +
-                    '-' +
-                    customer?.metadata?.first_name +
-                    ' ' +
-                    customer?.metadata?.last_name +
-                    '(' +
-                    customer?.email +
-                    ')'}
+  const renderFooter = () => {
+    return (
+      <>
+        {!isKeyboardVisible && (
+          <View style={styles.priceContainer}>
+            <View style={styles.priceDetailContainer}>
+              <Text style={styles.titleText}>Total MRP</Text>
+              <Text style={styles.priceText}>
+                {currencyFormatter.format(getTotal() / 100, {
+                  code: _.toUpper(Default.currency),
+                })}
               </Text>
-              {!_.isEmpty(customer) && (
-                <TouchableOpacity onPress={() => setShowCustomerModal(true)}>
-                  <Text style={styles.changeText}>CHANGE</Text>
-                </TouchableOpacity>
-              )}
-            </TouchableOpacity>
+            </View>
+            <View style={styles.priceDetailContainer}>
+              <Text style={styles.titleText}>
+                Tax ({Default.tax * 100}% {Default.taxName})
+              </Text>
+              <Text style={styles.priceText}>
+                {currencyFormatter.format((getTotal() * Default.tax) / 100, {
+                  code: _.toUpper(Default.currency),
+                })}
+              </Text>
+            </View>
+            <View style={[styles.priceDetailContainer, styles.totalContainer]}>
+              <Text style={styles.totalText}>Total Amount </Text>
+              <Text style={styles.totalText}>
+                {currencyFormatter.format(
+                  (getTotal() + getTotal() * Default.tax) / 100,
+                  {
+                    code: _.toUpper(Default.currency),
+                  },
+                )}
+              </Text>
+            </View>
           </View>
-          <FlatList
-            data={cartState.cart.products}
-            renderItem={({item, index}) => renderItem(item, index)}
-            keyExtractor={(item) => item.id}
-            ListEmptyComponent={renderEmptyComponent}
-          />
-          {renderFooterComponent()}
-          <View style={styles.sendButtonContainer}>
+        )}
+        <View style={styles.buttonContainer}>
+          {!!error && <Text style={styles.errorMessage}>{error}</Text>}
+          <View style={GlobalStyles.row}>
+            {props.route.params === 'Product' && (
+              <TouchableOpacity
+                style={[
+                  GlobalStyles.secondaryButtonContainer,
+                  !_.isEmpty(customer)
+                    ? ''
+                    : GlobalStyles.buttonDisabledContainer,
+                  styles.btnStyle,
+                  styles.invoiceButtonStyle,
+                ]}
+                disabled={!!_.isEmpty(customer)}
+                onPress={() => !_.isEmpty(customer) && sendInvoice()}>
+                {isLoading ? (
+                  <ActivityIndicator
+                    color={Colors.white}
+                    size={25}
+                    style={styles.loaderIcon}
+                  />
+                ) : (
+                  <Text
+                    style={[
+                      GlobalStyles.secondaryButtonText,
+                      !_.isEmpty(customer) ? '' : styles.btnTextStyle,
+                    ]}>
+                    Send Invoice
+                  </Text>
+                )}
+              </TouchableOpacity>
+            )}
             <TouchableOpacity
               style={[
                 GlobalStyles.secondaryButtonContainer,
                 !_.isEmpty(customer) && customer.paymentMethod
                   ? ''
-                  : styles.disableButton,
+                  : GlobalStyles.buttonDisabledContainer,
+                styles.btnStyle,
               ]}
               disabled={!(!_.isEmpty(customer) && customer.paymentMethod)}
               onPress={() =>
-                !_.isEmpty(customer) && customer.paymentMethod && sendInvoice()
+                !_.isEmpty(customer) &&
+                customer.paymentMethod &&
+                sendQuickPayInvoice()
               }>
-              {isLoading ? (
+              {isLoadingPay ? (
                 <ActivityIndicator
                   color={Colors.white}
-                  size={28}
+                  size={25}
                   style={styles.loaderIcon}
                 />
               ) : (
@@ -304,204 +401,183 @@ export default function Checkout(props) {
                     GlobalStyles.secondaryButtonText,
                     !_.isEmpty(customer) && customer.paymentMethod
                       ? ''
-                      : {color: Colors.white},
+                      : styles.btnTextStyle,
                   ]}>
-                  Send Invoice
+                  Pay Now
                 </Text>
               )}
             </TouchableOpacity>
           </View>
         </View>
-      ) : (
-        <View style={[styles.container, styles.emptyContainer]}>
-          <Text style={styles.noDataFound}>Cart is Empty.</Text>
-          <TouchableOpacity
-            style={GlobalStyles.secondaryButtonContainer}
-            onPress={() => props.navigation.navigate('Products')}>
-            <Text style={GlobalStyles.secondaryButtonText}>Product</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-      <Modal
-        animationType="slide"
+      </>
+    );
+  };
+  return (
+    <SafeAreaView style={GlobalStyles.flexStyle}>
+      <Header
+        navigation={props.navigation}
+        close={() => props.navigation.navigate('Home')}
+        title={props.route.params === 'Product' ? 'Checkout' : 'Quick Charge'}
+      />
+      {data.length ? renderHeader() : <></>}
+      <KeyboardAwareFlatList
+        style={GlobalStyles.flexStyle}
+        contentContainerStyle={styles.container}
+        keyboardShouldPersistTaps="handled"
+        data={data}
+        // ListHeaderComponent={data.length && renderHeader}
+        // ListFooterComponent={data.length && renderFooter}
+        renderItem={({item, index}) =>
+          props.route.params === 'Product'
+            ? renderProductItem(item, index)
+            : renderQuickPayItem(item, index)
+        }
+        keyExtractor={(item) => item.id}
+        ListEmptyComponent={renderEmptyComponent}
+      />
+      {data.length ? renderFooter() : <></>}
+      <Customer
         visible={showCustomerModal}
-        onRequestClose={(customer) => {
+        closeModal={(customer) => {
           getCustomer(customer);
-        }}>
-        <Customer
-          closeModal={(customer) => {
-            getCustomer(customer);
-          }}
-        />
-      </Modal>
-      <Modal
-        animationType="slide"
+        }}
+      />
+      <ProductDetailModal
         visible={showProductDetailModal}
-        onRequestClose={() => {
+        closeModal={() => {
           setShowProductDetailModal(false);
           setSelectedProduct('');
-        }}>
-        <ProductDetailModal
-          closeModal={() => {
-            setShowProductDetailModal(false);
-            setSelectedProduct('');
-          }}
-          product={selectedProduct}
-        />
-      </Modal>
+        }}
+        product={selectedProduct}
+      />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    width: '100%',
+    flexGrow: 1,
     backgroundColor: Colors.bgColor,
+    paddingVertical: 2,
   },
   customerContainer: {
-    paddingTop: 8,
-    paddingBottom: 3,
-  },
-  productImage: {
-    height: 100,
-    width: 100,
-    marginHorizontal: 4,
-  },
-  loaderIcon: {
-    padding: 5,
-    backgroundColor: 'transparent',
-  },
-  productContainer: {
-    marginVertical: 5,
+    // margin: 2,
     backgroundColor: Colors.white,
-    paddingHorizontal: 15,
-    paddingVertical: 10,
+    padding: 10,
     shadowColor: '#303838',
     shadowOffset: {width: 0, height: 1},
     shadowRadius: 2,
     shadowOpacity: 0.1,
     elevation: 2,
-  },
-  totalView: {
-    backgroundColor: Colors.white,
-    paddingVertical: 5,
-    paddingHorizontal: 15,
-    paddingTop: 10,
-    paddingVertical: 10,
-    marginTop: 10,
-  },
-  productName: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  productPrice: {
-    fontSize: 19,
-    // fontWeight: 'bold',
-  },
-  taxText: {
-    fontSize: 16,
-  },
-  qtyContainer: {
+    shadowOffset: {
+      width: 2,
+      height: 2,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 2.62,
     flexDirection: 'row',
-  },
-  qtyText: {
-    fontSize: 20,
-    paddingHorizontal: 6,
-    textAlign: 'center',
-  },
-  qtyBtn: (txt) => ({
-    backgroundColor: Colors.bgColor,
-    justifyContent: 'center',
-    paddingHorizontal: 5,
-    paddingVertical: 3,
-    borderRadius: 5,
     alignItems: 'center',
-  }),
-  noDataFound: {
-    fontSize: 18,
-    textAlign: 'center',
-    paddingVertical: 20,
+    justifyContent: 'space-between',
   },
   selectCustomerText: (isCustomerSelected) => ({
-    fontWeight: 'bold',
-    fontSize: 20,
+    fontWeight: isCustomerSelected ? '700' : 'bold',
+    fontSize: isCustomerSelected ? 16 : 18,
     textAlign: isCustomerSelected ? 'left' : 'center',
     flexGrow: 1,
     flexShrink: 1,
     marginRight: 20,
     color: isCustomerSelected ? Colors.black : Colors.primary,
-    marginVertical: 10,
   }),
-  totalContainer: {
-    width: '100%',
-    borderTopWidth: 0.5,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    borderColor: 'lightgrey',
-    paddingVertical: 10,
-    marginTop: 10,
-  },
-  totalText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  billProductPrice: {
-    fontSize: 18,
-  },
   changeText: {
     color: Colors.primary,
     fontWeight: 'bold',
     fontSize: 16,
   },
-  selectProductContainer: {
+  productImage: {
+    height: 90,
+    width: 68,
+  },
+  productContainer: {
+    margin: 2,
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    backgroundColor: Colors.white,
+    padding: 6,
+    justifyContent: 'center',
+    shadowColor: '#303838',
+    shadowOffset: {width: 0, height: 1},
+    shadowRadius: 2,
+    shadowOpacity: 0.1,
+    elevation: 2,
+    shadowOffset: {
+      width: 2,
+      height: 2,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 2.62,
   },
   productDetailContainer: {
     flexGrow: 1,
     flexShrink: 1,
-    marginLeft: 20,
-  },
-  sendButtonContainer: {
     paddingHorizontal: 20,
+    justifyContent: 'center',
+  },
+  productName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  productPrice: {
+    fontSize: 14,
+  },
+  priceContainer: {
     backgroundColor: Colors.white,
-    paddingBottom: Platform.OS === 'ios' ? 0 : 20,
-  },
-  deleteContainer: {
-    paddingTop: 5,
-  },
-  titleIconContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    flexGrow: 1,
-  },
-  imageContainer: {
-    width: '25%',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 20,
-  },
-  emptyContainer: {
-    justifyContent: 'center',
-    paddingHorizontal: 20,
-  },
-  disableButton: {
-    backgroundColor: Colors.greyText,
-    borderColor: Colors.greyText,
-  },
-  totalAmountContainer: {
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  quantityContainer: {
-    justifyContent: 'space-between',
-    marginVertical: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    // marginTop: 3,
   },
   priceDetailContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginVertical: 5,
+  },
+  titleText: {
+    fontSize: 14,
+  },
+  priceText: {
+    fontSize: 16,
+  },
+  totalContainer: {
+    paddingVertical: 3,
+  },
+  totalText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  buttonContainer: {
+    backgroundColor: Colors.white,
+  },
+  errorMessage: {
+    color: Colors.red,
+    textAlign: 'center',
+  },
+  btnStyle: {
+    flex: 1,
+    borderRadius: 0,
+  },
+  invoiceButtonStyle: {
+    backgroundColor: Colors.secondary,
+  },
+  loaderIcon: {
+    backgroundColor: 'transparent',
+  },
+  btnTextStyle: {color: Colors.white},
+  emptyContainer: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+  },
+  footerText: {
+    fontSize: 16,
+    paddingVertical: 10,
+    textAlign: 'center',
   },
 });

@@ -62,7 +62,22 @@ const sendInvoice = (data) => {
   };
 };
 
+const sendQuickPayInvoice = (data) => {
+  return (dispatch) => {
+    return invoice
+      .quickPay(data)
+      .then((response) => {
+        return response;
+      })
+      .catch((err) => {
+        console.error('error in sending quick pay invoice action', err);
+        return err.response;
+      });
+  };
+};
+
 export const invoiceAction = {
   getInvoices,
   sendInvoice,
+  sendQuickPayInvoice,
 };

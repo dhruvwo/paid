@@ -21,6 +21,7 @@ import LocalIcons from '../constants/LocalIcons';
 import SvgImageViewer from '../components/SvgImageViewer';
 import {authAction} from '../store/actions/auth';
 import {useDispatch} from 'react-redux';
+import GlobalStyles from '../constants/GlobalStyles';
 
 export default function SideMenu(props) {
   const [version, setVersion] = useState('');
@@ -75,56 +76,51 @@ export default function SideMenu(props) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.mainContainer}>
+      <SvgImageViewer
+        style={styles.imageContainer}
+        LocalIcon={LocalIcons.svgIconSet.logo}
+        height={styles.logoStyle.height}
+        width={styles.logoStyle.height}
+      />
       <ScrollView
-        style={{
-          flex: 1,
-        }}>
-        <View style={styles.sideMenuContainer}>
-          <View style={styles.sideMenuImageContainer}>
-            <SvgImageViewer
-              LocalIcon={LocalIcons.svgIconSet.logo}
-              height={styles.logoStyle.height}
-              width={styles.logoStyle.height}
-            />
-          </View>
-          <View style={styles.menuListContainer} />
-          {menuOptions.map((item, i) => {
-            return (
-              <TouchableOpacity
-                onPress={() => navigateToScreen(item.screenName)}
-                style={styles.menuItem}
-                key={i}>
-                <View style={styles.sideMenuListContainer}>
-                  <View style={styles.sideMenuIconContainer}>
-                    <CustomIconsComponent
-                      style={[{textAlign: 'center'}]}
-                      name={item.icon}
-                      type={item.type ? item.type : 'FontAwesome'}
-                      size={22}
-                      color={Colors.primary}
-                    />
-                  </View>
-                  <Text style={styles.menuText}>{item.displayName}</Text>
-                </View>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
+        style={GlobalStyles.flexStyle}
+        contentContainerStyle={styles.menuListContainer}>
+        {menuOptions.map((item, i) => {
+          return (
+            <TouchableOpacity
+              onPress={() => navigateToScreen(item.screenName)}
+              style={styles.menuItemContainer}
+              key={i}>
+              <CustomIconsComponent
+                style={styles.menuIconContainer}
+                name={item.icon}
+                type={item.type ? item.type : 'FontAwesome'}
+                size={22}
+                color={Colors.primary}
+              />
+              <Text style={styles.menuText}>{item.displayName}</Text>
+            </TouchableOpacity>
+          );
+        })}
       </ScrollView>
       <View style={styles.bottomContainer}>
         {logoutLoader ? (
-          <ActivityIndicator style={{paddingLeft: 30}} size={18} />
+          <ActivityIndicator
+            style={styles.loaderIcon}
+            size={18}
+            color={Colors.primary}
+          />
         ) : (
           <TouchableOpacity
             onPress={() => logout()}
-            style={styles.logoutContainer}>
+            style={styles.menuItemContainer}>
             <CustomIconsComponent
-              style={styles.logoutIcon}
+              style={styles.menuIconContainer}
               type={'SimpleLineIcons'}
               name={'logout'}
               color={Colors.greyText}
-              size={21}
+              size={22}
             />
             <Text style={styles.menuText}>Logout</Text>
           </TouchableOpacity>
@@ -140,30 +136,11 @@ export default function SideMenu(props) {
 }
 
 const styles = StyleSheet.create({
-  container: {
+  mainContainer: {
     flex: 1,
     backgroundColor: '#fff',
   },
-  menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  logoStyle: {
-    height: 130,
-  },
-  menuListContainer: {
-    paddingVertical: 5,
-    height: 1,
-    borderTopWidth: 1,
-    borderTopColor: '#d0d0d0',
-  },
-  bottomContainer: {
-    paddingBottom: 10,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  sideMenuImageContainer: {
+  imageContainer: {
     padding: 0,
     margin: 0,
     alignItems: 'flex-start',
@@ -171,41 +148,36 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.bgColor,
     alignItems: 'center',
   },
-  sideMenuListContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+  logoStyle: {
+    height: 130,
   },
-  sideMenuIconContainer: {
-    width: 30,
-    height: 30,
-    alignItems: 'center',
+  menuListContainer: {
+    flexGrow: 1,
+    padding: 20,
+  },
+  menuItemContainer: {
+    flexDirection: 'row',
+    paddingVertical: 12,
+  },
+  menuIconContainer: {
+    width: 25,
     justifyContent: 'center',
-    flexDirection: 'column',
-    marginRight: 10,
-  },
-  logoutContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 10,
-  },
-  logoutIcon: {
-    marginRight: 10,
-  },
-  sideMenuLogoutIcon: {
-    width: 30,
-    height: 30,
-    alignSelf: 'center',
-    textAlign: 'center',
-  },
-  versionContainer: {
-    paddingRight: 20,
-    paddingVertical: 6,
-    fontSize: 16,
+    marginHorizontal: 6,
   },
   menuText: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '600',
-    color: Colors.darkGrey,
+    color: Colors.greyText,
+    justifyContent: 'center',
+  },
+  bottomContainer: {
+    padding: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  loaderIcon: {paddingLeft: 30},
+  versionContainer: {
+    justifyContent: 'center',
+    fontSize: 16,
   },
 });

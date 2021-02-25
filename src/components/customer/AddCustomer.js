@@ -6,6 +6,7 @@ import {
   View,
   TextInput,
   ActivityIndicator,
+  Modal,
 } from 'react-native';
 import Colors from '../../constants/Colors';
 import GlobalStyles from '../../constants/GlobalStyles';
@@ -15,6 +16,7 @@ import {useSelector, useDispatch} from 'react-redux';
 import * as _ from 'lodash';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import ToastService from '../../services/Toast';
+import Header from '../Header';
 
 export default function AddCustomer(props) {
   const dispatch = useDispatch();
@@ -36,7 +38,7 @@ export default function AddCustomer(props) {
     email: '',
     phone: '',
   });
-
+  const isValid = !!(data.firstName && data.lastName && data.email);
   const addCustomer = async () => {
     setIsLoading(true);
     const customer = {
@@ -65,137 +67,136 @@ export default function AddCustomer(props) {
   };
 
   return (
-    <KeyboardAwareScrollView style={styles.mainContainer}>
-      <TouchableOpacity onPress={() => props.closeModal()}>
-        <CustomIconsComponent
-          style={styles.iconStyle}
-          name={'ios-close-outline'}
-          size={40}
-        />
-      </TouchableOpacity>
-
-      <View style={styles.container}>
-        <CustomIconsComponent
-          name={'user'}
-          type={'FontAwesome'}
-          color={Colors.greyText}
-          size={100}
-        />
-        <Text style={styles.header}>Add Customer</Text>
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.inputLabel}
-            underlineColorAndroid="transparent"
-            placeholder="Business Name"
-            value={data.businessName}
-            onChangeText={(businessName) =>
-              setData({...data, businessName: businessName})
-            }
-          />
-        </View>
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.inputLabel}
-            underlineColorAndroid="transparent"
-            placeholder="First Name*"
-            value={data.firstName}
-            onChangeText={(firstName) =>
-              setData({...data, firstName: firstName})
-            }
-          />
-        </View>
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.inputLabel}
-            underlineColorAndroid="transparent"
-            placeholder="Last Name*"
-            value={data.lastName}
-            onChangeText={(lastName) => setData({...data, lastName: lastName})}
-          />
-        </View>
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.inputLabel}
-            keyboardType={'email-address'}
-            underlineColorAndroid="transparent"
-            placeholder="Email*"
-            value={data.email}
-            onChangeText={(email) => setData({...data, email: email.trim()})}
-          />
-        </View>
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.inputLabel}
-            keyboardType={'numeric'}
-            underlineColorAndroid="transparent"
-            placeholder="Phone"
-            maxLength={10}
-            value={data.phone}
-            onChangeText={(phone) => setData({...data, phone: phone})}
-          />
-        </View>
-        <View style={styles.errorContainer}>
-          {error ? <Text style={styles.errorMessage}>{error}</Text> : <View />}
-        </View>
-        <View style={styles.btnContainer}>
-          <TouchableOpacity
-            style={[GlobalStyles.secondaryButtonContainer, styles.btnStyle]}
-            onPress={() => addCustomer()}>
-            {isLoading ? (
-              <ActivityIndicator
-                color={Colors.white}
-                size={28}
-                style={styles.loaderIcon}
-              />
+    <Modal
+      animationType="slide"
+      visible={props.visible}
+      onRequestClose={() => {
+        props.closeModal();
+      }}>
+      <Header
+        navigation={props.navigation}
+        title="Add Customer"
+        close={() => props.closeModal()}
+      />
+      <KeyboardAwareScrollView
+        style={GlobalStyles.flexStyle}
+        contentContainerStyle={styles.mainContainer}
+        keyboardShouldPersistTaps="handled">
+        <View style={styles.container}>
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.inputLabel}
+              underlineColorAndroid="transparent"
+              placeholder="Business Name"
+              value={data.businessName}
+              onChangeText={(businessName) =>
+                setData({...data, businessName: businessName})
+              }
+            />
+          </View>
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.inputLabel}
+              underlineColorAndroid="transparent"
+              placeholder="First Name*"
+              value={data.firstName}
+              onChangeText={(firstName) =>
+                setData({...data, firstName: firstName})
+              }
+            />
+          </View>
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.inputLabel}
+              underlineColorAndroid="transparent"
+              placeholder="Last Name*"
+              value={data.lastName}
+              onChangeText={(lastName) =>
+                setData({...data, lastName: lastName})
+              }
+            />
+          </View>
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.inputLabel}
+              keyboardType={'email-address'}
+              underlineColorAndroid="transparent"
+              placeholder="Email*"
+              value={data.email}
+              onChangeText={(email) => setData({...data, email: email.trim()})}
+            />
+          </View>
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.inputLabel}
+              keyboardType={'numeric'}
+              underlineColorAndroid="transparent"
+              placeholder="Phone"
+              maxLength={10}
+              value={data.phone}
+              onChangeText={(phone) => setData({...data, phone: phone})}
+            />
+          </View>
+          <View style={styles.errorContainer}>
+            {error ? (
+              <Text style={styles.errorMessage}>{error}</Text>
             ) : (
-              <Text style={GlobalStyles.secondaryButtonText}>Add</Text>
+              <View />
             )}
-          </TouchableOpacity>
+          </View>
+          <View style={styles.btnContainer}>
+            <TouchableOpacity
+              disabled={!isValid}
+              style={[
+                GlobalStyles.secondaryButtonContainer,
+                isValid ? '' : GlobalStyles.buttonDisabledContainer,
+                styles.btnStyle,
+              ]}
+              onPress={() => addCustomer()}>
+              {isLoading ? (
+                <ActivityIndicator
+                  color={Colors.white}
+                  size={25}
+                  style={styles.loaderIcon}
+                />
+              ) : (
+                <Text style={GlobalStyles.secondaryButtonText}>Add</Text>
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
-    </KeyboardAwareScrollView>
+      </KeyboardAwareScrollView>
+    </Modal>
   );
 }
 
 const styles = StyleSheet.create({
   mainContainer: {
-    flex: 1,
-    // justifyContent: 'center',
+    flexGrow: 1,
     backgroundColor: Colors.bgColor,
-    width: '100%',
+    justifyContent: 'center',
   },
   container: {
     backgroundColor: Colors.white,
-    marginVertical: 30,
-    borderRadius: 20,
+    marginVertical: 10,
+    borderRadius: 10,
     alignItems: 'center',
     marginHorizontal: 10,
     paddingVertical: 10,
   },
-  iconStyle: {
-    padding: 8,
-  },
-  header: {
-    color: Colors.primary,
-    fontSize: 26,
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
   loaderIcon: {
-    padding: 5,
     backgroundColor: 'transparent',
   },
   inputContainer: {
     marginTop: 16,
     flexDirection: 'row',
     borderWidth: 1,
-    borderRadius: 20,
+    borderRadius: 10,
     marginHorizontal: 15,
     borderColor: '#E4E1E1',
   },
   inputLabel: {
     minHeight: 50,
-    height: 50,
     fontSize: 17,
     fontWeight: '700',
     flexGrow: 1,

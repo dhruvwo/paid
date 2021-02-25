@@ -15,9 +15,22 @@ const removeProduct = (data) => ({
   data,
 });
 
-const clearCart = (data) => ({
+const clearCart = () => ({
   type: CartState.CLEAR_CART,
+});
+
+const addQuickPay = (data) => ({
+  type: CartState.ADD_QUICKPAY,
   data,
+});
+
+const removeQuickPay = (data) => ({
+  type: CartState.REMOVE_QUICKPAY,
+  data,
+});
+
+const clearQuickPay = () => ({
+  type: CartState.CLEAR_QUICKPAY,
 });
 
 export const cartAction = {
@@ -25,4 +38,7 @@ export const cartAction = {
   updateCart,
   removeProduct,
   clearCart,
+  addQuickPay,
+  removeQuickPay,
+  clearQuickPay,
 };

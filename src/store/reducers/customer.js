@@ -3,7 +3,7 @@ import * as _ from 'lodash';
 
 const initialState = {
   customers: [],
-  total: 0,
+  hasMore: true,
 };
 
 export const customer = (state = initialState, action) => {
@@ -11,7 +11,7 @@ export const customer = (state = initialState, action) => {
     case CustomerState.SET_CUSTOMERS:
       return {
         customers: action.data.customers,
-        total: action.data.total,
+        hasMore: !!action.data.customers.length,
       };
     case CustomerState.APPEND_CUSTOMERS:
       const customers = _.uniqBy([
@@ -20,7 +20,7 @@ export const customer = (state = initialState, action) => {
       ]);
       return {
         customers,
-        total: action.data.total,
+        hasMore: !!action.data.customers.length,
       };
     default:
       return state;

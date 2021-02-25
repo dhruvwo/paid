@@ -4,21 +4,21 @@ import {
   Text,
   TouchableOpacity,
   View,
-  ScrollView,
-  Dimensions,
+  Modal,
+  Alert,
 } from 'react-native';
 import {useDispatch, useSelector} from 'react-redux';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import Colors from '../constants/Colors';
 import GlobalStyles from '../constants/GlobalStyles';
-import CustomIconsComponent from '../components/CustomIcons';
 import FastImage from 'react-native-fast-image';
 import * as _ from 'lodash';
 import currencyFormatter from 'currency-formatter';
 import {cartAction} from '../store/actions';
-import {currency} from '../constants/Default';
-
-const screenHeight = Dimensions.get('window').height;
+import Default from '../constants/Default';
+import CustomIconsComponent from '../components/CustomIcons';
+import QuantityComponent from '../components/Quantity';
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 
 export default function ProductDetailModal(props) {
   const dispatch = useDispatch();
@@ -29,41 +29,54 @@ export default function ProductDetailModal(props) {
   });
   const cardProduct = cartState.cart.products;
   const [qty, setQty] = useState(1);
-  const [total, setTotal] = useState(0);
   const [isCartProduct, setIsCartProduct] = useState(false);
 
   useEffect(() => {
     fnIsCartProduct();
-  }, []);
+  }, [props.product]);
 
-  useEffect(() => {
-    setTotal(
-      currencyFormatter.format(
-        (qty * props.product.prices[0].unitAmountDecimal) / 100,
-        {
-          code: _.toUpper(currency),
-        },
-      ),
-    );
-  }, [qty]);
   const fnIsCartProduct = () => {
-    const index = _.findIndex(cardProduct, {id: props.product.id});
+    const index = _.findIndex(cardProduct, {id: props?.product?.id});
     if (index > -1) {
       setQty(cardProduct[index].qty);
       setIsCartProduct(true);
     } else {
+      setQty(1);
       setIsCartProduct(false);
     }
   };
 
+  const data = {
+    id: props?.product?.id,
+    product: props?.product,
+    qty: qty,
+    priceId: !_.isEmpty(props.product) ? props.product.prices[0].id : 0,
+    price: !_.isEmpty(props.product)
+      ? props.product.prices[0].unitAmountDecimal
+      : 0,
+  };
+
+  const updateQty = (item) => {
+    setQty(item.qty);
+  };
+
+  const removeProduct = (item) => {
+    Alert.alert('', 'Do you really want to remove product from cart?', [
+      {
+        text: 'yes',
+        onPress: () => {
+          dispatch(cartAction.removeProduct(item.id));
+          setIsCartProduct(false);
+        },
+      },
+      {
+        text: 'Cancel',
+        style: 'cancel',
+      },
+    ]);
+  };
+
   const onSubmit = async () => {
-    const data = {
-      id: props.product.id,
-      product: props.product,
-      qty: qty,
-      priceId: props.product.prices[0].id,
-      price: props.product.prices[0].unitAmountDecimal,
-    };
     if (isCartProduct) {
       await dispatch(cartAction.updateCart(data));
     } else {
@@ -73,198 +86,176 @@ export default function ProductDetailModal(props) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.modalHeader}>
+    <Modal
+      animationType="slide"
+      visible={props.visible}
+      onRequestClose={() => {
+        props.closeModal();
+      }}>
+      <View style={GlobalStyles.flexStyle}>
         <TouchableOpacity
-          style={styles.backBtn}
+          style={styles.headerIconContainer}
           onPress={() => {
             props.closeModal();
           }}>
           <CustomIconsComponent
-            name={'chevron-back'}
             type={'Ionicons'}
-            color={Colors.darkGrey}
+            name={'chevron-back'}
+            color={Colors.greyText}
             size={40}
           />
         </TouchableOpacity>
-        <Text style={styles.modalHeaderText}>{props.product.name}</Text>
-      </View>
-      <ScrollView contentContainerStyle={styles.modalContainer}>
-        <View style={styles.productImageContainer}>
-          <FastImage
-            style={styles.productImage}
-            resizeMode={'cover'}
-            source={require('../assets/products/product2.png')}
-          />
-        </View>
-        <View style={styles.productDetailContainer}>
-          <View style={styles.productContainer}>
-            <Text style={styles.productText}>{props.product.name}</Text>
-            <Text style={styles.modalText}>{props.product.description}</Text>
-          </View>
 
-          <View style={styles.priceMainContainer}>
-            <View style={styles.productContainer}>
-              <Text style={styles.headerText}>Prices</Text>
+        <KeyboardAwareScrollView
+          style={GlobalStyles.flexStyle}
+          contentContainerStyle={styles.container}
+          keyboardShouldPersistTaps="handled">
+          <View style={styles.productImageContainer}>
+            <FastImage
+              style={styles.productImage}
+              resizeMode={'contain'}
+              source={require('../assets/products/product6.png')}
+            />
+          </View>
+          <View style={styles.productDetailContainer}>
+            <Text style={styles.productText}>{props?.product?.name}</Text>
+            <Text style={styles.descriptionText}>
+              {props?.product?.description}
+            </Text>
+            <View style={styles.detailsContainer}>
               <View style={styles.priceContainer}>
-                <Text style={styles.priceText}>
-                  {currencyFormatter.format(
-                    props.product.prices[0].unitAmountDecimal / 100,
-                    {
-                      code: _.toUpper(currency),
-                    },
-                  )}
-                </Text>
+                <Text style={styles.fieldTitleText}>Price</Text>
+                <View style={styles.fieldValueText}>
+                  <Text style={styles.priceText}>
+                    {currencyFormatter.format(
+                      (!_.isEmpty(props.product)
+                        ? props?.product?.prices[0]?.unitAmountDecimal
+                        : 0) / 100,
+                      {
+                        code: _.toUpper(Default.currency),
+                      },
+                    )}
+                  </Text>
+                </View>
               </View>
-            </View>
-
-            <View style={styles.productContainer}>
-              <Text style={styles.headerText}>Quantity</Text>
-              <View style={[styles.qtyContainer]}>
-                <TouchableOpacity
-                  style={styles.qtyBtn('-')}
-                  onPress={() => {
-                    qty > 1 && setQty(qty - 1);
-                  }}>
-                  <Text style={styles.qtyText}>-</Text>
-                </TouchableOpacity>
-                {/* <TextInput
-            value={qty}
-            placeholder="Quantity*"
-            onChangeText={(qty) => setQty(qty)}
-          /> */}
-                <Text style={[styles.qtyText, styles.qtyTextStyle]}>{qty}</Text>
-                <TouchableOpacity
-                  style={styles.qtyBtn('+')}
-                  onPress={() => {
-                    setQty(qty + 1);
-                  }}>
-                  <Text style={styles.qtyText}>+</Text>
-                </TouchableOpacity>
+              <View style={styles.priceContainer}>
+                <Text style={styles.fieldTitleText}>Quantity</Text>
+                <View style={styles.fieldValueText}>
+                  <QuantityComponent
+                    showDelete={true}
+                    item={data}
+                    deleteProduct={(id) => removeProduct(id)}
+                    getQuantity={(data) => updateQty(data)}
+                  />
+                </View>
               </View>
             </View>
           </View>
-
-          <View style={styles.totalContainer}>
-            <View>
-              <Text>Total:</Text>
-              <Text style={styles.totalText}>{total}</Text>
-            </View>
-            <TouchableOpacity
-              style={[GlobalStyles.secondaryButtonContainer, styles.totalBtn]}
-              onPress={() => onSubmit()}>
-              <Text style={GlobalStyles.secondaryButtonText}>
-                {isCartProduct ? 'Update' : 'Add'}
-              </Text>
-            </TouchableOpacity>
+        </KeyboardAwareScrollView>
+        <View style={styles.totalContainer}>
+          <View style={GlobalStyles.flexStyle}>
+            <Text style={styles.totalText}>
+              {currencyFormatter.format(
+                (qty *
+                  (!_.isEmpty(props.product)
+                    ? props?.product?.prices[0]?.unitAmountDecimal
+                    : 0)) /
+                  100,
+                {
+                  code: _.toUpper(Default.currency),
+                },
+              )}
+            </Text>
           </View>
+          <TouchableOpacity
+            style={[GlobalStyles.buttonContainer, styles.totalBtn]}
+            onPress={() => onSubmit()}>
+            <Text style={GlobalStyles.buttonText}>
+              {isCartProduct ? 'Update' : 'Add'}
+            </Text>
+          </TouchableOpacity>
         </View>
-      </ScrollView>
-    </SafeAreaView>
+      </View>
+    </Modal>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    height: screenHeight,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    paddingTop: 4,
-    paddingHorizontal: 6,
-    justifyContent: 'center',
-  },
-  backBtn: {
-    paddingHorizontal: 4,
-    paddingVertical: 8,
-    position: 'absolute',
-    left: 3,
-  },
-  modalHeaderText: {
-    fontSize: 28,
-    paddingVertical: 4,
-    justifyContent: 'center',
-    textAlign: 'center',
-  },
-  modalContainer: {
     flexGrow: 1,
-    paddingBottom: 30,
+    backgroundColor: Colors.bgColor,
+  },
+  headerIconContainer: {
+    position: 'absolute',
+    top: 5,
+    left: 2,
+    zIndex: 1,
   },
   productDetailContainer: {
-    paddingHorizontal: 14,
-    justifyContent: 'space-between',
     flexGrow: 1,
+    backgroundColor: Colors.white,
+    // borderTopLeftRadius: 20,
+    borderTopWidth: 1,
+    borderLeftWidth: 1,
+    borderColor: Colors.bgColor,
+    padding: 25,
   },
-  modalText: {
-    fontSize: 16,
+  productImageContainer: {
+    alignItems: 'center',
+  },
+  productImage: {
+    height: 360,
+    width: '100%',
+    margin: 10,
+  },
+  descriptionText: {
+    fontSize: 14,
+    color: Colors.greyText,
     paddingVertical: 6,
   },
   productText: {
-    fontSize: 32,
+    fontSize: 22,
     fontWeight: 'bold',
   },
-
-  productImageContainer: {
-    alignItems: 'center',
-    margin: 10,
+  detailsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginVertical: 5,
   },
-  productImage: {
-    height: 300,
-    width: '100%',
-    borderRadius: 10,
+  priceContainer: {
+    paddingTop: 5,
   },
-  headerText: {
+  fieldValueText: {
+    marginTop: 5,
+  },
+  fieldTitleText: {
     fontSize: 16,
     fontWeight: 'bold',
     paddingVertical: 5,
-    textAlign: 'center',
-  },
-  priceMainContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  productContainer: {
-    color: Colors.darkGrey,
   },
   priceText: {
-    fontSize: 20,
+    fontSize: 18,
+    lineHeight: 18,
   },
-  qtyContainer: {
-    flexDirection: 'row',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-  },
-  qtyText: {
-    fontSize: 28,
-    paddingHorizontal: 6,
-    width: 50,
-    textAlign: 'center',
-  },
-  qtyTextStyle: {
-    borderColor: Colors.greyText,
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-  },
-  qtyBtn: (txt) => ({
-    borderTopLeftRadius: txt === '-' ? 10 : 0,
-    borderBottomLeftRadius: txt === '-' ? 10 : 0,
-    borderTopRightRadius: txt === '+' ? 10 : 0,
-    borderBottomRightRadius: txt === '+' ? 10 : 0,
-    borderWidth: 1,
-    width: 40,
-    borderColor: Colors.greyText,
-    justifyContent: 'center',
-    alignItems: 'center',
-  }),
   totalContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingTop: 8,
+    paddingHorizontal: 25,
+    paddingVertical: 15,
+    justifyContent: 'center',
+    backgroundColor: Colors.primary,
+    opacity: 0.9,
+    // borderTopLeftRadius: 25,
   },
   totalText: {
-    fontSize: 24,
+    flexGrow: 1,
+    flexShrink: 1,
+    fontSize: 22,
     fontWeight: 'bold',
-    paddingHorizontal: 6,
+    color: Colors.white,
+    paddingVertical: 10,
   },
-  totalBtn: {width: '46%', margin: 6},
+  totalBtn: {
+    flex: 1,
+    borderRadius: 20,
+  },
 });
