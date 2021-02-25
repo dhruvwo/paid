@@ -29,7 +29,7 @@ export default function SideMenu(props) {
   const dispatch = useDispatch();
   const menuOptions = [
     {
-      screenName: 'Home',
+      screenName: 'BottomTab',
       icon: 'rocket-launch',
       type: 'MaterialCommunityIcons',
       displayName: 'Home',
@@ -49,7 +49,7 @@ export default function SideMenu(props) {
   navigateToScreen = async (route) => {
     props.navigation.dispatch(DrawerActions.closeDrawer());
     if (route) {
-      if (route === 'Home') {
+      if (route === 'BottomTab') {
         // const resetAction = StackActions.reset({
         //   index: 0,
         //   actions: [NavigationActions.navigate({routeName: 'DrawerNavigator'})],

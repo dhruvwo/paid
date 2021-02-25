@@ -44,15 +44,12 @@ export default function Login(props) {
       await dispatch(authAction.getUserSetup());
       setIsLoginLoader(false);
       props.navigation.replace('DrawerNavigator');
-    }
-    if (loginData?.data?.status === 'failed') {
+    } else if (loginData?.data?.status === 'failed') {
       setErrorMessage(loginData.data.error);
-      setIsLoginLoader(false);
+    } else if (loginData?.status === 'failed') {
+      setErrorMessage(loginData.data.error || loginData.error);
     }
-    if (loginData?.status === 'failed') {
-      setErrorMessage(loginData.error);
-      setIsLoginLoader(false);
-    }
+    setIsLoginLoader(false);
   };
 
   return (

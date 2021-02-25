@@ -31,8 +31,8 @@ export default function CalculatorScreen(props) {
     };
   });
   const [currVal, setCurrVal] = useState(0);
-  const [showModal, setShowModal] = useState(false);
-  const [modalType, setModalType] = useState('');
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [showNoteModal, setShowNoteModal] = useState(false);
   const [note, setNote] = useState('');
 
   const addCart = async (current) => {
@@ -159,8 +159,7 @@ export default function CalculatorScreen(props) {
             <TouchableOpacity
               // disabled={!cartState?.cart?.quickPay?.length}
               onPress={() => {
-                setShowModal(true);
-                setModalType('history');
+                setShowHistoryModal(true);
               }}>
               <CustomIconsComponent
                 style={styles.historyIconStyle}
@@ -179,8 +178,7 @@ export default function CalculatorScreen(props) {
                 <TouchableOpacity
                   style={GlobalStyles.row}
                   onPress={() => {
-                    setShowModal(true);
-                    setModalType('note');
+                    setShowNoteModal(true);
                   }}>
                   <Text
                     style={styles.noteTextStyle}
@@ -199,8 +197,7 @@ export default function CalculatorScreen(props) {
               ) : (
                 <TouchableOpacity
                   onPress={() => {
-                    setShowModal(true);
-                    setModalType('note');
+                    setShowNoteModal(true);
                   }}>
                   <CustomIconsComponent
                     style={styles.iconStyle}
@@ -286,23 +283,20 @@ export default function CalculatorScreen(props) {
           </View>
         </View>
       </View>
-      {modalType === 'history' ? (
-        <History
-          visible={showModal}
-          closeModal={() => {
-            setShowModal(false);
-          }}
-        />
-      ) : (
-        <Note
-          note={note}
-          visible={showModal}
-          closeModal={(note) => {
-            setNote(note);
-            setShowModal(false);
-          }}
-        />
-      )}
+      <History
+        visible={showHistoryModal}
+        closeModal={() => {
+          setShowHistoryModal(false);
+        }}
+      />
+      <Note
+        note={note}
+        visible={showNoteModal}
+        closeModal={(val) => {
+          setNote(val);
+          setShowNoteModal(false);
+        }}
+      />
     </SafeAreaView>
   );
 }

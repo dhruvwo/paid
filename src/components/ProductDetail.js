@@ -114,7 +114,7 @@ export default function ProductDetailModal(props) {
             <FastImage
               style={styles.productImage}
               resizeMode={'contain'}
-              source={require('../assets/products/product6.png')}
+              source={require('../assets/products/product7.png')}
             />
           </View>
           <View style={styles.productDetailContainer}>

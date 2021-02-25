@@ -119,7 +119,9 @@ export default function Checkout(props) {
       props.route.params === 'Product'
         ? dispatch(cartAction.clearCart())
         : dispatch(cartAction.clearQuickPay());
-      props.navigation.navigate('Home');
+      props.navigation.navigate(
+        props.route.params === 'Product' ? 'Products' : 'QuickPay',
+      );
       ToastService({
         message: 'Paid successfully !',
       });
@@ -201,7 +203,7 @@ export default function Checkout(props) {
         <FastImage
           style={styles.productImage}
           resizeMode={'cover'}
-          source={require('../assets/products/product6.png')}
+          source={require('../assets/products/product7.png')}
         />
         <View style={styles.productDetailContainer}>
           <Text style={styles.productName}>{item.product.name}</Text>
@@ -261,7 +263,7 @@ export default function Checkout(props) {
           style={GlobalStyles.secondaryButtonContainer}
           onPress={() => {
             const navPage =
-              props.route.params === 'Product' ? 'Products' : 'Quick Pay';
+              props.route.params === 'Product' ? 'Products' : 'QuickPay';
             props.navigation.navigate(navPage);
           }}>
           <Text style={GlobalStyles.secondaryButtonText}>
@@ -416,7 +418,11 @@ export default function Checkout(props) {
     <SafeAreaView style={GlobalStyles.flexStyle}>
       <Header
         navigation={props.navigation}
-        close={() => props.navigation.navigate('Home')}
+        close={() =>
+          props.navigation.navigate(
+            props.route.params === 'Product' ? 'Products' : 'QuickPay',
+          )
+        }
         title={props.route.params === 'Product' ? 'Checkout' : 'Quick Charge'}
       />
       {data.length ? renderHeader() : <></>}

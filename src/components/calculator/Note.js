@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {
   TouchableOpacity,
   Text,
@@ -9,7 +9,6 @@ import {
 import Colors from '../../constants/Colors';
 import GlobalStyles from '../../constants/GlobalStyles';
 import * as _ from 'lodash';
-import {useState} from 'react/cjs/react.development';
 import Header from '../Header';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 

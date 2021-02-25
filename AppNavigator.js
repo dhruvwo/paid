@@ -21,7 +21,7 @@ const Drawer = createDrawerNavigator();
 
 const tabs = [
   {
-    name: 'Quick Pay',
+    name: 'QuickPay',
     component: CalculatorScreen,
     iconType: 'MaterialCommunityIcons',
     focusedIconName: 'rocket-launch',
@@ -81,13 +81,13 @@ function BottomTab() {
   );
 }
 
-function ProductStack() {
+function HomeStack() {
   return (
     <Stack.Navigator
-      initialRouteName={'Home'}
+      initialRouteName={'BottomTab'}
       screenOptions={{headerShown: false}}>
-      <Tab.Screen name="Home" component={BottomTab} />
-      <Tab.Screen name="Checkout" component={Checkout} />
+      <Stack.Screen name="BottomTab" component={BottomTab} />
+      <Stack.Screen name="Checkout" component={Checkout} />
     </Stack.Navigator>
   );
 }
@@ -102,7 +102,7 @@ function DrawerNavigator() {
     <Drawer.Navigator
       initialRouteName="Home"
       drawerContent={(props) => <SideMenu {...props} />}>
-      <Drawer.Screen name="Home" component={ProductStack} />
+      <Drawer.Screen name="Home" component={HomeStack} />
       <Drawer.Screen name="Invoices" component={Invoice} />
     </Drawer.Navigator>
   );
