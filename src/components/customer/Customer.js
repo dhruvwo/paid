@@ -11,7 +11,6 @@ import {
   RefreshControl,
 } from 'react-native';
 import Colors from '../../constants/Colors';
-import GlobalStyles from '../../constants/GlobalStyles';
 import CustomIconsComponent from '../CustomIcons';
 import {customerAction} from '../../store/actions';
 import {useSelector, useDispatch} from 'react-redux';
@@ -33,7 +32,7 @@ export default function Customer(props) {
 
   const [refresh, setRefresh] = useState(false);
   const [searchText, setSearchText] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [isLoadMoreLoader, setIsLoadMoreLoader] = useState(false);
   const [start, setStart] = useState(0);
   const [isSearchLoading, setIsSearchLoading] = useState(false);
@@ -48,17 +47,16 @@ export default function Customer(props) {
   }, []);
 
   const delayedQuery = useCallback(
-    _.debounce(async () => await getCustomer(), 1300),
+    _.debounce(async () => await getCustomer(), 1000),
     [searchText],
   );
 
   useEffect(() => {
-    const filterCalled = async () => {
+    if (!isLoading) {
       setIsSearchLoading(true);
       setStart(0);
-      await delayedQuery();
-    };
-    filterCalled();
+      delayedQuery();
+    }
     // Cancel the debounce on useEffect cleanup.
     return delayedQuery.cancel;
   }, [searchText, delayedQuery]);

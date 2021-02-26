@@ -39,7 +39,7 @@ export default function Invoice(props) {
   const [showInvoiceDetailModal, setShowInvoiceDetailModal] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState('');
   const [isSearchLoading, setIsSearchLoading] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [isLoadMoreLoader, setIsLoadMoreLoader] = useState(false);
   const [activeTab, setActiveTab] = useState('All');
   const [status, setStatus] = useState('');
@@ -99,12 +99,12 @@ export default function Invoice(props) {
   };
 
   const delayedQuery = useCallback(
-    _.debounce(async () => await fetchData(), 1300),
+    _.debounce(async () => await fetchData(), 1000),
     [filterTotal],
   );
 
   useEffect(() => {
-    if (!isLoading) {
+    if (!isLoading && !isLoadMoreLoader) {
       setIsSearchLoading(true);
       setStartAfter('');
       delayedQuery();

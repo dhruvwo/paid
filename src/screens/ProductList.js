@@ -34,7 +34,7 @@ export default function ProductList(props) {
   const [searchText, setSearchText] = useState('');
   const [showProductDetailModal, setShowProductDetailModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [isLoadMoreLoader, setIsLoadMoreLoader] = useState(false);
   const [start, setStart] = useState(0);
   const [isSearchLoading, setIsSearchLoading] = useState(false);
@@ -51,16 +51,15 @@ export default function ProductList(props) {
   }, []);
 
   const delayedQuery = useCallback(
-    _.debounce(async () => await getData(), 1300),
+    _.debounce(async () => await getData(), 1000),
     [searchText],
   );
 
   useEffect(() => {
-    const filterCalled = async () => {
+    if (!isLoading) {
       setIsSearchLoading(true);
-      await delayedQuery();
-    };
-    filterCalled();
+      delayedQuery();
+    }
     // Cancel the debounce on useEffect cleanup.
     return delayedQuery.cancel;
   }, [searchText, delayedQuery]);

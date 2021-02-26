@@ -27,7 +27,7 @@ export default function Login(props) {
   const [secure, setSecure] = useState(true);
 
   const notInplement = () => {
-    return Alert.alert(``, `Not Implemented Yet!`, [
+    return Alert.alert(``, `Comming soon.`, [
       {
         text: 'Close',
         style: 'cancel',
@@ -39,7 +39,6 @@ export default function Login(props) {
     setIsLoginLoader(true);
     await dispatch(authAction.getServiceKey());
     const loginData = await dispatch(authAction.login(email, password));
-    // console.log('Login data', loginData);
     if (loginData?.status === 'success') {
       await dispatch(authAction.getUserSetup());
       setIsLoginLoader(false);
