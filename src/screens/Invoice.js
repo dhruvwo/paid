@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   FlatList,
   ActivityIndicator,
   RefreshControl,
+  Modal,
 } from 'react-native';
 import {useDispatch, useSelector} from 'react-redux';
 import GlobalStyles from '../constants/GlobalStyles';
@@ -31,11 +32,13 @@ export default function Invoice(props) {
     };
   });
   const tabsList = ['All', 'Overdue', 'Unpaid', 'Paid', 'Draft'];
+  const [data, setData] = useState('');
   const [refresh, setRefresh] = useState(false);
   const [filterTotal, setFilterTotal] = useState('');
   const [startAfter, setStartAfter] = useState('');
   const [showInvoiceDetailModal, setShowInvoiceDetailModal] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState('');
+  const [isSearchLoading, setIsSearchLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadMoreLoader, setIsLoadMoreLoader] = useState(false);
   const [activeTab, setActiveTab] = useState('All');
@@ -50,14 +53,15 @@ export default function Invoice(props) {
     invoiceState?.auth?.userSetup?.payments?.stripeDetails?.accountId;
 
   useEffect(() => {
-    getData();
-  }, []);
+    setData(invoiceState.invoice.invoices);
+  }, [invoiceState.invoice.invoices]);
 
   useEffect(() => {
     getData();
   }, [activeTab, status, dueDate]);
 
   const getTabData = (tab) => {
+    setData('');
     setActiveTab(tab);
     setStartAfter('');
     switch (tab) {
@@ -94,17 +98,22 @@ export default function Invoice(props) {
     }
   };
 
-  useEffect(() => {
-    setIsLoading(true);
-    // if (filterTotal) {
-    setStartAfter('');
-    getData();
-    console.log('filterTotal', filterTotal);
-    // }
-  }, [filterTotal]);
+  const delayedQuery = useCallback(
+    _.debounce(async () => await fetchData(), 1300),
+    [filterTotal],
+  );
 
-  const getData = async () => {
-    setIsLoading(true);
+  useEffect(() => {
+    if (!isLoading) {
+      setIsSearchLoading(true);
+      setStartAfter('');
+      delayedQuery();
+    }
+    // Cancel the debounce on useEffect cleanup.
+    return delayedQuery.cancel;
+  }, [filterTotal, delayedQuery]);
+
+  const fetchData = async () => {
     const invoiceData = await dispatch(
       invoiceAction.getInvoices(
         accountId,
@@ -119,6 +128,14 @@ export default function Invoice(props) {
     if (invoiceData?.invoices?.has_more === true) {
       setStartAfter(invoiceData.invoices.data[Default.perPageLimit - 1].id);
     }
+    // if (isSearchLoading === true) {
+    setIsSearchLoading(false);
+    // }
+  };
+
+  const getData = async () => {
+    setIsLoading(true);
+    await fetchData();
     setIsLoading(false);
   };
 
@@ -257,10 +274,10 @@ export default function Invoice(props) {
         <View style={styles.loaderContainer}>
           {isLoadMoreLoader ? (
             <ActivityIndicator size="small" color={Colors.primary} />
+          ) : invoiceState.invoice.has_more === false && startAfter ? (
+            <Text style={styles.footerText}>No more invoice</Text>
           ) : (
-            invoiceState.invoice.has_more === false && (
-              <Text style={styles.footerText}>No more invoice</Text>
-            )
+            <></>
           )}
         </View>
       )
@@ -286,36 +303,39 @@ export default function Invoice(props) {
             value={filterTotal}
             onChangeText={(txt) => setFilterTotal(txt)}
           />
+          {isSearchLoading ? (
+            <ActivityIndicator
+              style={styles.searchLoader}
+              size="small"
+              color={Colors.primary}
+            />
+          ) : (
+            <></>
+          )}
         </View>
         {renderHeader()}
-        {isLoading ? (
-          <View style={styles.loaderContainer}>
-            <ActivityIndicator size="small" color={Colors.primary} />
-          </View>
-        ) : (
-          <FlatList
-            keyboardShouldPersistTaps={'handled'}
-            contentContainerStyle={styles.invoiceMainContainer}
-            data={invoiceState.invoice.invoices}
-            refreshControl={
-              <RefreshControl
-                refreshing={refresh}
-                onRefresh={onRefresh}
-                colors={[Colors.primary]}
-              />
-            }
-            extraScrollHeight={150}
-            onEndReachedThreshold={0.5}
-            onMomentumScrollBegin={() =>
-              setOnEndReachedCalledDuringMomentum(false)
-            }
-            renderItem={({item, index}) => renderItem(item, index)}
-            onEndReached={() => handleLoadMore()}
-            ListFooterComponent={renderFooterComponent}
-            keyExtractor={(item, index) => index.toString()}
-            ListEmptyComponent={renderEmptyComponent}
-          />
-        )}
+        <FlatList
+          keyboardShouldPersistTaps={'handled'}
+          contentContainerStyle={styles.invoiceMainContainer}
+          data={data}
+          refreshControl={
+            <RefreshControl
+              refreshing={refresh}
+              onRefresh={onRefresh}
+              colors={[Colors.primary]}
+            />
+          }
+          extraScrollHeight={150}
+          onEndReachedThreshold={0.5}
+          onMomentumScrollBegin={() =>
+            setOnEndReachedCalledDuringMomentum(false)
+          }
+          renderItem={({item, index}) => renderItem(item, index)}
+          onEndReached={() => handleLoadMore()}
+          ListFooterComponent={renderFooterComponent}
+          keyExtractor={(item, index) => index.toString()}
+          ListEmptyComponent={renderEmptyComponent}
+        />
       </View>
 
       <InvoiceDetailModal
@@ -326,6 +346,15 @@ export default function Invoice(props) {
         }}
         invoice={selectedInvoice}
       />
+      <Modal transparent={true} visible={isLoading}>
+        <View style={styles.modalView}>
+          <ActivityIndicator
+            style={styles.modalLoader}
+            size={35}
+            color={Colors.primary}
+          />
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -356,6 +385,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     paddingHorizontal: 10,
   },
+  searchLoader: {
+    padding: 12,
+  },
   tabsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -383,9 +415,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     padding: 10,
     backgroundColor: Colors.white,
-    // margin: 2,
-    borderBottomColor: Colors.bgColor,
-    borderBottomWidth: 0.5,
+    margin: 2,
+    // borderBottomColor: Colors.bgColor,
+    // borderBottomWidth: 0.5,
   },
   detailContainer: {
     flexGrow: 1,
@@ -430,5 +462,21 @@ const styles = StyleSheet.create({
     fontSize: 14,
     paddingVertical: 10,
     textAlign: 'center',
+  },
+  modalView: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    backgroundColor: 'black',
+    opacity: 0.6,
+  },
+  modalLoader: {
+    justifyContent: 'center',
+    backgroundColor: Colors.white,
+    borderWidth: 1,
+    borderRadius: 30,
+    borderColor: Colors.grey,
+    paddingVertical: 10,
+    width: '15%',
+    alignSelf: 'center',
   },
 });

@@ -24,8 +24,8 @@ export default function Login(props) {
   const [password, setPassword] = useState(''); //Paid123!
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoginLoader, setIsLoginLoader] = useState(false);
+  const [secure, setSecure] = useState(true);
 
-  console.log('login called');
   const notInplement = () => {
     return Alert.alert(``, `Not Implemented Yet!`, [
       {
@@ -105,13 +105,39 @@ export default function Login(props) {
               size={27}
             />
             <TextInput
-              style={styles.inputLabel}
+              style={[styles.inputLabel, styles.passwordText]}
               underlineColorAndroid="transparent"
               placeholder="Password*"
               value={password}
-              secureTextEntry={true}
+              onSubmitEditing={() => onSubmit()}
+              secureTextEntry={secure}
               onChangeText={(password) => setPassword(password)}
             />
+            {password ? (
+              <TouchableOpacity
+                style={{justifyContent: 'center'}}
+                onPress={() => setSecure(!secure)}>
+                {secure ? (
+                  <CustomIconsComponent
+                    style={styles.passwordIcon}
+                    type={'Ionicons'}
+                    color={Colors.grey}
+                    name={'ios-eye-off-outline'}
+                    size={20}
+                  />
+                ) : (
+                  <CustomIconsComponent
+                    style={styles.passwordIcon}
+                    type={'Ionicons'}
+                    color={Colors.grey}
+                    name={'ios-eye-outline'}
+                    size={20}
+                  />
+                )}
+              </TouchableOpacity>
+            ) : (
+              <></>
+            )}
           </View>
           <View style={styles.errorContainer}>
             {errorMessage ? (
@@ -138,7 +164,7 @@ export default function Login(props) {
               <View>
                 <Text
                   style={[GlobalStyles.secondaryButtonText, styles.loginText]}>
-                  {'Login'}
+                  Login
                 </Text>
               </View>
             )}
@@ -180,15 +206,15 @@ export default function Login(props) {
         <View style={styles.forgotPasswordContainer}>
           <TouchableOpacity onPress={() => notInplement()}>
             <View style={styles.loginContainer}>
-              <Text style={styles.touchableText}>{'Forgot Password ?'}</Text>
+              <Text style={styles.touchableText}>Forgot Password?</Text>
             </View>
           </TouchableOpacity>
           <View style={styles.signUpContainer}>
-            <Text style={styles.containerText}>Don't have an account ?</Text>
+            <Text style={styles.containerText}>Don't have an account?</Text>
             <TouchableOpacity
               style={styles.signUpText}
               onPress={() => notInplement()}>
-              <Text style={GlobalStyles.buttonText}>{'Sign up'}</Text>
+              <Text style={GlobalStyles.buttonText}>Sign up</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -288,6 +314,11 @@ const styles = StyleSheet.create({
     height: 50,
     paddingHorizontal: 10,
     paddingTop: 18,
+  },
+  passwordIcon: {
+    height: 50,
+    paddingHorizontal: 10,
+    paddingTop: 23,
   },
   inputLabel: {
     minHeight: 50,

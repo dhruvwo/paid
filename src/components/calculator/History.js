@@ -45,7 +45,7 @@ export default function History(props) {
   const update = (item) => {
     // setIsEditable(item.id);
     // setNewValue(item.price);
-    return Alert.alert(``, `Not Implemented Yet!`, [
+    return Alert.alert(``, `Comming soon.`, [
       {
         text: 'Close',
         style: 'cancel',

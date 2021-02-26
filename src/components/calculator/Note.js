@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   TouchableOpacity,
   Text,
@@ -13,7 +13,11 @@ import Header from '../Header';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 
 export default function Note(props) {
-  const [note, setNote] = useState(props.note);
+  const [note, setNote] = useState('');
+
+  useEffect(() => {
+    setNote(props.note);
+  }, [props.note]);
 
   return (
     <Modal
@@ -21,11 +25,15 @@ export default function Note(props) {
       visible={props.visible}
       onRequestClose={() => {
         props.closeModal(note);
+        setNote('');
       }}>
       <Header
         navigation={props.navigation}
         title="Note"
-        close={() => props.closeModal(note)}
+        close={() => {
+          props.closeModal(note);
+          setNote('');
+        }}
       />
       <KeyboardAwareScrollView
         style={GlobalStyles.flexStyle}
@@ -39,9 +47,11 @@ export default function Note(props) {
           onChangeText={(note) => setNote(note)}
         />
         <TouchableOpacity
-          disabled={!note}
           style={[GlobalStyles.secondaryButtonContainer, styles.btnStyle]}
-          onPress={() => props.closeModal(note)}>
+          onPress={() => {
+            props.closeModal(note);
+            setNote('');
+          }}>
           <Text style={GlobalStyles.secondaryButtonText}>Save</Text>
         </TouchableOpacity>
       </KeyboardAwareScrollView>
@@ -63,6 +73,7 @@ const styles = StyleSheet.create({
   noteContainer: {
     borderRadius: 10,
     margin: 10,
+    padding: 20,
     minHeight: 200,
     backgroundColor: Colors.white,
     elevation: 2,

@@ -21,8 +21,6 @@ import History from '../components/calculator/History';
 import {cartAction} from '../store/actions';
 import {useDispatch, useSelector} from 'react-redux';
 
-const screen = Dimensions.get('window');
-
 export default function CalculatorScreen(props) {
   const dispatch = useDispatch();
   const cartState = useSelector(({cart}) => {
@@ -251,18 +249,20 @@ export default function CalculatorScreen(props) {
               text="AC"
               theme="secondary"
               onPress={() => {
-                Alert.alert('', 'Do you really want to clear all?', [
-                  {
-                    text: 'yes',
-                    onPress: () => {
-                      handleTap('clear');
-                    },
-                  },
-                  {
-                    text: 'Cancel',
-                    style: 'cancel',
-                  },
-                ]);
+                cartState?.cart?.quickPay?.length
+                  ? Alert.alert('', 'Do you really want to clear all?', [
+                      {
+                        text: 'yes',
+                        onPress: () => {
+                          handleTap('clear');
+                        },
+                      },
+                      {
+                        text: 'Cancel',
+                        style: 'cancel',
+                      },
+                    ])
+                  : handleTap('onlyClear');
               }}
             />
           </View>

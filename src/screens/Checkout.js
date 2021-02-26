@@ -48,7 +48,7 @@ export default function Checkout(props) {
   const [showCustomerModal, setShowCustomerModal] = useState(false);
   const [showProductDetailModal, setShowProductDetailModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState('');
-  const [error, setError] = useState('');
+  const [error, setError] = useState('Please select customer');
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
   useEffect(() => {
@@ -91,7 +91,7 @@ export default function Checkout(props) {
       dispatch(cartAction.clearCart());
       props.navigation.navigate('Products');
       ToastService({
-        message: 'Invoice send successfully !',
+        message: 'Invoice send successfully.',
       });
     } else {
       ToastService({
@@ -123,7 +123,7 @@ export default function Checkout(props) {
         props.route.params === 'Product' ? 'Products' : 'QuickPay',
       );
       ToastService({
-        message: 'Paid successfully !',
+        message: 'Paid successfully.',
       });
     } else {
       setError(pay.data.message);
@@ -283,7 +283,7 @@ export default function Checkout(props) {
         onPress={() => setShowCustomerModal(true)}>
         {_.isEmpty(customer) ? (
           <Text style={styles.selectCustomerText(!_.isEmpty(customer))}>
-            Select customer
+            Select customer*
           </Text>
         ) : (
           <>

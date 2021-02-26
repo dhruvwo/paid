@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {
   StyleSheet,
   Text,
@@ -46,12 +46,21 @@ export default function Customer(props) {
     getCustomer();
   }, []);
 
+  const delayedQuery = useCallback(
+    _.debounce(async () => await getCustomer(), 1300),
+    [searchText],
+  );
+
   useEffect(() => {
-    if (searchText) {
+    const filterCalled = async () => {
+      setIsLoading(true);
       setStart(0);
-      getCustomer();
-    }
-  }, [searchText]);
+      await delayedQuery();
+    };
+    filterCalled();
+    // Cancel the debounce on useEffect cleanup.
+    return delayedQuery.cancel;
+  }, [searchText, delayedQuery]);
 
   const getCustomer = async () => {
     setIsLoading(true);

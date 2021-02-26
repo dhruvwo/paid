@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {
   View,
   Text,
@@ -49,11 +49,20 @@ export default function ProductList(props) {
     getData();
   }, []);
 
+  const delayedQuery = useCallback(
+    _.debounce(async () => await getData(), 1300),
+    [searchText],
+  );
+
   useEffect(() => {
-    if (searchText) {
-      getData();
-    }
-  }, [searchText]);
+    const filterCalled = async () => {
+      setIsLoading(true);
+      await delayedQuery();
+    };
+    filterCalled();
+    // Cancel the debounce on useEffect cleanup.
+    return delayedQuery.cancel;
+  }, [searchText, delayedQuery]);
 
   const getData = async () => {
     setIsLoading(true);
