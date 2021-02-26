@@ -37,6 +37,7 @@ export default function ProductList(props) {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadMoreLoader, setIsLoadMoreLoader] = useState(false);
   const [start, setStart] = useState(0);
+  const [isSearchLoading, setIsSearchLoading] = useState(false);
   const [
     onEndReachedCalledDuringMomentum,
     setOnEndReachedCalledDuringMomentum,
@@ -56,7 +57,7 @@ export default function ProductList(props) {
 
   useEffect(() => {
     const filterCalled = async () => {
-      setIsLoading(true);
+      setIsSearchLoading(true);
       await delayedQuery();
     };
     filterCalled();
@@ -68,6 +69,7 @@ export default function ProductList(props) {
     setIsLoading(true);
     await dispatch(productAction.getProducts(accountId, searchText, 0));
     setIsLoading(false);
+    setIsSearchLoading(false);
   };
 
   const onRefresh = async () => {
@@ -181,6 +183,15 @@ export default function ProductList(props) {
             value={searchText}
             onChangeText={(txt) => setSearchText(txt)}
           />
+          {isSearchLoading ? (
+            <ActivityIndicator
+              style={styles.searchIcon}
+              size="small"
+              color={Colors.primary}
+            />
+          ) : (
+            <></>
+          )}
         </View>
         <FlatList
           keyboardShouldPersistTaps={'handled'}

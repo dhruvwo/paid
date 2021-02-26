@@ -17,7 +17,7 @@ export default function Note(props) {
 
   useEffect(() => {
     setNote(props.note);
-  }, [props.note]);
+  }, [props]);
 
   return (
     <Modal

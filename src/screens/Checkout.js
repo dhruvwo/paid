@@ -278,15 +278,14 @@ export default function Checkout(props) {
 
   const renderHeader = () => {
     return (
-      <TouchableOpacity
-        style={styles.customerContainer}
-        onPress={() => setShowCustomerModal(true)}>
+      <TouchableOpacity onPress={() => setShowCustomerModal(true)}>
         {_.isEmpty(customer) ? (
-          <Text style={styles.selectCustomerText(!_.isEmpty(customer))}>
-            Select customer*
-          </Text>
+          <View style={styles.customerSelectContainer}>
+            <Text style={styles.customerText}>Select customer</Text>
+            <Text style={[styles.customerText, {color: Colors.red}]}>*</Text>
+          </View>
         ) : (
-          <>
+          <View style={styles.customerContainer}>
             <View>
               <Text style={styles.selectCustomerText(!_.isEmpty(customer))}>
                 {`${
@@ -303,7 +302,7 @@ export default function Checkout(props) {
               </Text>
             </View>
             <Text style={styles.changeText}>CHANGE</Text>
-          </>
+          </View>
         )}
       </TouchableOpacity>
     );
@@ -494,6 +493,29 @@ const styles = StyleSheet.create({
     marginRight: 20,
     color: isCustomerSelected ? Colors.black : Colors.primary,
   }),
+  customerSelectContainer: {
+    backgroundColor: Colors.white,
+    padding: 10,
+    shadowColor: '#303838',
+    shadowOffset: {width: 0, height: 1},
+    shadowRadius: 2,
+    shadowOpacity: 0.1,
+    elevation: 2,
+    shadowOffset: {
+      width: 2,
+      height: 2,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 2.62,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  customerText: {
+    fontWeight: 'bold',
+    fontSize: 18,
+    color: Colors.primary,
+  },
   changeText: {
     color: Colors.primary,
     fontWeight: 'bold',
