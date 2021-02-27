@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
-  TextInput,
   FlatList,
   ActivityIndicator,
   RefreshControl,
@@ -17,20 +16,18 @@ import Colors from '../constants/Colors';
 import currencyFormatter from 'currency-formatter';
 import Default from '../constants/Default';
 import Header from '../components/Header';
-import CustomIconsComponent from '../components/CustomIcons';
 import InvoiceDetailModal from '../components/InvoiceDetail';
 import {invoiceAction} from '../store/actions';
 import * as _ from 'lodash';
 import moment from 'moment';
+import SearchComponent from '../components/SearchComponent';
 
 export default function Invoice(props) {
   const dispatch = useDispatch();
-  const invoiceState = useSelector(({auth, invoice}) => {
-    return {
-      auth,
-      invoice,
-    };
-  });
+  const reducState = useSelector(({auth, invoice}) => ({
+    auth,
+    invoice,
+  }));
   const tabsList = ['All', 'Overdue', 'Unpaid', 'Paid', 'Draft'];
   const [data, setData] = useState('');
   const [refresh, setRefresh] = useState(false);
@@ -50,11 +47,11 @@ export default function Invoice(props) {
   ] = useState(false);
 
   const accountId =
-    invoiceState?.auth?.userSetup?.payments?.stripeDetails?.accountId;
+    reducState?.auth?.userSetup?.payments?.stripeDetails?.accountId;
 
   useEffect(() => {
-    setData(invoiceState.invoice.invoices);
-  }, [invoiceState.invoice.invoices]);
+    setData(reducState.invoice.invoices);
+  }, [reducState.invoice.invoices]);
 
   useEffect(() => {
     getData();
@@ -99,7 +96,7 @@ export default function Invoice(props) {
   };
 
   const delayedQuery = useCallback(
-    _.debounce(async () => await fetchData(), 1000),
+    _.debounce(() => fetchData(), 1000),
     [filterTotal],
   );
 
@@ -115,15 +112,12 @@ export default function Invoice(props) {
 
   const fetchData = async () => {
     const invoiceData = await dispatch(
-      invoiceAction.getInvoices(
+      invoiceAction.getInvoices({
         accountId,
         filterTotal,
-        '', //    startAfter
-        '', //    filter_customer='',
-        '', //    created='',
         status,
         dueDate,
-      ),
+      }),
     );
     if (invoiceData?.invoices?.has_more === true) {
       setStartAfter(invoiceData.invoices.data[Default.perPageLimit - 1].id);
@@ -149,19 +143,17 @@ export default function Invoice(props) {
   const handleLoadMore = async () => {
     if (
       !onEndReachedCalledDuringMomentum &&
-      invoiceState.invoice.has_more === true
+      reducState.invoice.has_more === true
     ) {
       setIsLoadMoreLoader(true);
       const invoiceData = await dispatch(
-        invoiceAction.getInvoices(
+        invoiceAction.getInvoices({
           accountId,
           filterTotal,
           startAfter,
-          '',
-          '',
           status,
           dueDate,
-        ),
+        }),
       );
       if (invoiceData?.invoices?.has_more === true) {
         setStartAfter(invoiceData.invoices.data[19].id);
@@ -207,7 +199,7 @@ export default function Invoice(props) {
     );
   };
 
-  const renderItem = (item, index) => {
+  const renderItem = (item) => {
     return (
       // <TouchableOpacity
       //   style={styles.invoiceContainer}
@@ -216,7 +208,7 @@ export default function Invoice(props) {
       //     setShowInvoiceDetailModal(true);
       //     setSelectedInvoice(item);
       //   }}>
-      <View style={styles.invoiceContainer} key={index.toString()}>
+      <View style={styles.invoiceContainer}>
         <View style={styles.detailContainer}>
           {item.customer_name && (
             <Text
@@ -237,12 +229,14 @@ export default function Invoice(props) {
           )}
         </View>
         <View style={styles.priceContainer}>
-          <Text
+          <View
             style={styles.statusContainer(
               getStatus(item.status, item.due_date),
             )}>
-            {getStatus(item.status, item.due_date)}
-          </Text>
+            <Text style={styles.statusText}>
+              {getStatus(item.status, item.due_date)}
+            </Text>
+          </View>
           <Text style={styles.priceText}>
             {currencyFormatter.format(item.total / 100, {
               code: _.toUpper(Default.currency),
@@ -260,8 +254,8 @@ export default function Invoice(props) {
         {isLoading ? (
           <ActivityIndicator size="small" color={Colors.primary} />
         ) : (
-          invoiceState.invoice.has_more === false && (
-            <Text style={styles.footerText}>No invoice</Text>
+          reducState.invoice.has_more === false && (
+            <Text style={GlobalStyles.footerText}>No invoice found.</Text>
           )
         )}
       </View>
@@ -274,8 +268,8 @@ export default function Invoice(props) {
         <View style={styles.loaderContainer}>
           {isLoadMoreLoader ? (
             <ActivityIndicator size="small" color={Colors.primary} />
-          ) : invoiceState.invoice.has_more === false && startAfter ? (
-            <Text style={styles.footerText}>No more invoice</Text>
+          ) : reducState.invoice.has_more === false && startAfter ? (
+            <Text style={GlobalStyles.footerText}>No more invoices.</Text>
           ) : (
             <></>
           )}
@@ -289,29 +283,13 @@ export default function Invoice(props) {
       <Header navigation={props.navigation} showMenu={true} title={'Invoice'} />
       <View style={styles.container}>
         <View style={styles.searchContainer}>
-          <CustomIconsComponent
-            style={styles.searchIcon}
-            type={'AntDesign'}
-            color={Colors.primary}
-            name={'search1'}
-          />
-          <TextInput
-            keyboardType={'numeric'}
-            style={styles.searchInput}
-            underlineColorAndroid="transparent"
-            placeholder="Search total amount"
+          <SearchComponent
             value={filterTotal}
             onChangeText={(txt) => setFilterTotal(txt)}
+            placeholder="Search total amount"
+            keyboardType={'numeric'}
+            isSearchLoading={!isLoading && isSearchLoading}
           />
-          {isSearchLoading ? (
-            <ActivityIndicator
-              style={styles.searchLoader}
-              size="small"
-              color={Colors.primary}
-            />
-          ) : (
-            <></>
-          )}
         </View>
         {renderHeader()}
         <FlatList
@@ -322,22 +300,21 @@ export default function Invoice(props) {
             <RefreshControl
               refreshing={refresh}
               onRefresh={onRefresh}
+              tintColor={Colors.primary}
               colors={[Colors.primary]}
             />
           }
-          extraScrollHeight={150}
           onEndReachedThreshold={0.5}
+          keyExtractor={(item) => item.id}
           onMomentumScrollBegin={() =>
             setOnEndReachedCalledDuringMomentum(false)
           }
-          renderItem={({item, index}) => renderItem(item, index)}
           onEndReached={() => handleLoadMore()}
-          ListFooterComponent={renderFooterComponent}
-          keyExtractor={(item, index) => index.toString()}
+          renderItem={({item}) => renderItem(item)}
           ListEmptyComponent={renderEmptyComponent}
+          ListFooterComponent={renderFooterComponent}
         />
       </View>
-
       <InvoiceDetailModal
         visible={showInvoiceDetailModal}
         closeModal={() => {
@@ -376,18 +353,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 2.62,
   },
-  searchIcon: {
-    padding: 12,
-  },
-  searchInput: {
-    flexGrow: 1,
-    flexShrink: 1,
-    fontSize: 16,
-    paddingHorizontal: 10,
-  },
-  searchLoader: {
-    padding: 12,
-  },
   tabsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -404,7 +369,7 @@ const styles = StyleSheet.create({
   },
   loaderContainer: {
     flex: 1,
-    padding: 30,
+    padding: 16,
     alignItems: 'center',
   },
   invoiceMainContainer: {
@@ -439,17 +404,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
     textAlign: 'center',
+    marginTop: 5,
   },
   statusContainer: (status) => ({
     paddingVertical: 4,
     paddingHorizontal: 6,
     borderRadius: 12,
-    textAlign: 'center',
     minWidth: 60,
     backgroundColor: Colors[status],
-    color: Colors.white,
-    fontWeight: 'bold',
-    textTransform: 'capitalize',
     elevation: 1,
     shadowOffset: {
       width: 2,
@@ -458,9 +420,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 2.62,
   }),
-  footerText: {
-    fontSize: 14,
-    paddingVertical: 10,
+  statusText: {
+    color: Colors.white,
+    fontWeight: 'bold',
+    textTransform: 'capitalize',
     textAlign: 'center',
   },
   modalView: {

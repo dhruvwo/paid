@@ -5,16 +5,9 @@ import CustomIconsComponent from '../components/CustomIcons';
 import {useSelector} from 'react-redux';
 
 export default function Header(props) {
-  const cartState = useSelector(({cart}) => {
-    return {
-      cart,
-    };
-  });
-
+  const cartState = useSelector(({cart}) => cart);
   const cartData =
-    props.showCart === 'Product'
-      ? cartState?.cart?.products
-      : cartState?.cart?.quickPay;
+    props.showCart === 'Product' ? cartState?.products : cartState?.quickPay;
 
   return (
     <View style={styles.pageHeader(props.showMenu)}>

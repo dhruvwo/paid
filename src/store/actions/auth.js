@@ -3,6 +3,7 @@ import {AuthState} from '../../constants/GlobalState';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {navigate} from '../../RootNavigation';
 import {cartAction} from '../actions/cart';
+import {customerAction, invoiceAction, productAction} from '.';
 
 const setKey = (data) => ({
   type: AuthState.SET_KEY,
@@ -77,6 +78,9 @@ const logout = () => {
     dispatch(clearUser());
     dispatch(cartAction.clearCart());
     dispatch(cartAction.clearQuickPay());
+    dispatch(customerAction.clearCustomers());
+    dispatch(productAction.clearProducts());
+    dispatch(invoiceAction.clearInvoices());
     AsyncStorage.clear();
     navigate('Login', {
       reset: true,

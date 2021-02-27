@@ -2,7 +2,7 @@ import {API_URL} from '../../../env.json';
 import axios from 'axios';
 import Default from '../../constants/Default';
 
-const products = async (accountId, filter_name, start) => {
+const products = async ({accountId, searchText, start}) => {
   // axios
   //   .request({
   //     url: `${API_URL}/billing/payments/stripe-product?accountId=${accountId}&perPage=${perPage}&filter=%7B%22filter_name%22:%22${filter_name}%22,%22start%22:${start},%22limit%22:${limit}%7D`,
@@ -13,11 +13,11 @@ const products = async (accountId, filter_name, start) => {
         accountId: accountId,
         perPage: Default.perPageLimit,
         filter: {
-          filter_name: filter_name,
-          start: start,
+          filter_name: searchText,
+          start: start || 0,
           limit: Default.perPageLimit,
           filter_currency: Default.currency,
-          // filter_type:"one_time"
+          filter_type: 'one_time',
         },
       },
     })

@@ -14,7 +14,7 @@ import Colors from '../constants/Colors';
 import {useDispatch, useSelector} from 'react-redux';
 import {cartAction, invoiceAction} from '../store/actions';
 import Header from '../components/Header';
-import Customer from '../components/customer/Customer';
+import CustomersList from '../components/customer/CustomersList';
 import * as _ from 'lodash';
 import currencyFormatter from 'currency-formatter';
 import CustomIconsComponent from '../components/CustomIcons';
@@ -28,20 +28,16 @@ import {KeyboardAwareFlatList} from 'react-native-keyboard-aware-scroll-view';
 
 export default function Checkout(props) {
   const dispatch = useDispatch();
-  const cartState = useSelector(({auth, product, customer, cart}) => {
-    return {
-      auth,
-      product,
-      customer,
-      cart,
-    };
-  });
+  const reducState = useSelector(({auth, cart}) => ({
+    auth,
+    cart,
+  }));
 
-  const stripeDetails = cartState?.auth?.userSetup?.payments?.stripeDetails;
+  const stripeDetails = reducState?.auth?.userSetup?.payments?.stripeDetails;
   const data =
     props.route.params === 'Product'
-      ? cartState.cart.products
-      : cartState.cart.quickPay;
+      ? reducState.cart.products
+      : reducState.cart.quickPay;
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingPay, setIsLoadingPay] = useState(false);
   const [customer, setCustomer] = useState({});
@@ -169,14 +165,12 @@ export default function Checkout(props) {
   const deleteProduct = (id) => {
     Alert.alert(
       '',
-      `${
-        'Do you really want to remove this ' +
-        (props.route.params === 'Product' ? 'product' : 'payment') +
-        ' from cart?'
-      }`,
+      `Do you want to remove this ${
+        props.route.params === 'Product' ? 'product' : 'payment'
+      } from cart?`,
       [
         {
-          text: 'yes',
+          text: 'Remove',
           onPress: () => {
             props.route.params === 'Product'
               ? dispatch(cartAction.removeProduct(id))
@@ -205,7 +199,11 @@ export default function Checkout(props) {
           resizeMode={'cover'}
           source={require('../assets/products/product7.png')}
         />
-        <View style={styles.productDetailContainer}>
+        <View
+          style={[
+            styles.productDetailContainer,
+            styles.productWithImageContainer,
+          ]}>
           <Text style={styles.productName}>{item.product.name}</Text>
           <Text style={styles.productPrice}>
             {currencyFormatter.format((item.price / 100) * item.qty, {
@@ -258,9 +256,12 @@ export default function Checkout(props) {
   const renderEmptyComponent = () => {
     return (
       <View style={styles.emptyContainer}>
-        <Text style={styles.footerText}>Cart is empty.</Text>
+        <Text style={GlobalStyles.footerText}>Cart is empty.</Text>
         <TouchableOpacity
-          style={GlobalStyles.secondaryButtonContainer}
+          style={[
+            GlobalStyles.secondaryButtonContainer,
+            styles.goToButtonContainer,
+          ]}
           onPress={() => {
             const navPage =
               props.route.params === 'Product' ? 'Products' : 'QuickPay';
@@ -281,7 +282,7 @@ export default function Checkout(props) {
       <TouchableOpacity onPress={() => setShowCustomerModal(true)}>
         {_.isEmpty(customer) ? (
           <View style={styles.customerSelectContainer}>
-            <Text style={styles.customerText}>Select customer</Text>
+            <Text style={styles.customerText}>Select Customer</Text>
             <Text style={[styles.customerText, {color: Colors.red}]}>*</Text>
           </View>
         ) : (
@@ -297,7 +298,11 @@ export default function Checkout(props) {
                     : '')
                 }`}
               </Text>
-              <Text style={styles.selectCustomerText(!_.isEmpty(customer))}>
+              <Text
+                style={[
+                  styles.selectCustomerText(!_.isEmpty(customer)),
+                  styles.emailText,
+                ]}>
                 {customer?.email}
               </Text>
             </View>
@@ -441,7 +446,7 @@ export default function Checkout(props) {
         ListEmptyComponent={renderEmptyComponent}
       />
       {data.length ? renderFooter() : <></>}
-      <Customer
+      <CustomersList
         visible={showCustomerModal}
         closeModal={(customer) => {
           getCustomer(customer);
@@ -493,6 +498,9 @@ const styles = StyleSheet.create({
     marginRight: 20,
     color: isCustomerSelected ? Colors.black : Colors.primary,
   }),
+  emailText: {
+    fontWeight: 'normal',
+  },
   customerSelectContainer: {
     backgroundColor: Colors.white,
     padding: 10,
@@ -546,8 +554,10 @@ const styles = StyleSheet.create({
   productDetailContainer: {
     flexGrow: 1,
     flexShrink: 1,
-    paddingHorizontal: 20,
     justifyContent: 'center',
+  },
+  productWithImageContainer: {
+    paddingHorizontal: 20,
   },
   productName: {
     fontSize: 16,
@@ -560,6 +570,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     paddingHorizontal: 10,
     paddingVertical: 3,
+    paddingTop: 10,
     // marginTop: 3,
   },
   priceDetailContainer: {
@@ -590,6 +601,7 @@ const styles = StyleSheet.create({
   btnStyle: {
     flex: 1,
     borderRadius: 0,
+    height: 42,
   },
   invoiceButtonStyle: {
     backgroundColor: Colors.secondary,
@@ -603,9 +615,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 20,
   },
-  footerText: {
-    fontSize: 16,
-    paddingVertical: 10,
-    textAlign: 'center',
+  goToButtonContainer: {
+    marginTop: 10,
   },
 });

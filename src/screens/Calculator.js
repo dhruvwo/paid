@@ -23,11 +23,7 @@ import {useDispatch, useSelector} from 'react-redux';
 
 export default function CalculatorScreen(props) {
   const dispatch = useDispatch();
-  const cartState = useSelector(({cart}) => {
-    return {
-      cart,
-    };
-  });
+  const cartState = useSelector(({cart}) => cart);
   const [currVal, setCurrVal] = useState(0);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [showNoteModal, setShowNoteModal] = useState(false);
@@ -35,7 +31,7 @@ export default function CalculatorScreen(props) {
 
   const addCart = async (current) => {
     const data = {
-      id: 'quickPay' + cartState?.cart?.quickPay?.length,
+      id: 'quickPay' + cartState?.quickPay?.length,
       product: {type: 'quick Pay', note: note},
       price: current * 100,
       qty: 1,
@@ -89,7 +85,7 @@ export default function CalculatorScreen(props) {
 
   const getResult = () => {
     let add = 0;
-    cartState.cart.quickPay.map((val, i) => {
+    cartState.quickPay.map((val, i) => {
       add += val.price;
     });
     return add;
@@ -154,16 +150,14 @@ export default function CalculatorScreen(props) {
 
         <View style={styles.inputContainer}>
           <TouchableOpacity
-            // disabled={!cartState?.cart?.quickPay?.length}
+            // disabled={!cartState??.quickPay?.length}
             onPress={() => {
               setShowHistoryModal(true);
             }}>
             <CustomIconsComponent
               style={styles.historyIconStyle}
               type={'MaterialIcons'}
-              color={
-                cartState?.cart?.quickPay?.length ? Colors.primary : Colors.grey
-              }
+              color={cartState?.quickPay?.length ? Colors.primary : Colors.grey}
               size={25}
               name={'history-toggle-off'}
             />
@@ -245,10 +239,10 @@ export default function CalculatorScreen(props) {
               text="AC"
               theme="secondary"
               onPress={() => {
-                cartState?.cart?.quickPay?.length
-                  ? Alert.alert('', 'Do you really want to clear all?', [
+                cartState?.quickPay?.length
+                  ? Alert.alert('', 'Do you want to clear all?', [
                       {
-                        text: 'yes',
+                        text: 'Clear',
                         onPress: () => {
                           handleTap('clear');
                         },
@@ -342,14 +336,14 @@ const styles = StyleSheet.create({
   },
   iconStyle: {
     paddingHorizontal: 6,
-    paddingTop: 15,
   },
-  historyIconStyle: {paddingTop: 13},
+  historyIconStyle: {},
   inputContainer: {
     flexDirection: 'row',
     paddingVertical: 10,
     paddingHorizontal: 10,
     backgroundColor: Colors.white,
+    alignItems: 'center',
   },
   totalHeaderText: {fontWeight: 'bold'},
   totalText: {
@@ -358,7 +352,6 @@ const styles = StyleSheet.create({
   },
   noteTextStyle: {
     fontSize: 16,
-    paddingTop: 13,
     paddingLeft: 5,
   },
   noteContainer: {

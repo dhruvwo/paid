@@ -9,11 +9,7 @@ import {
 } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {
-  NavigationActions,
-  StackActions,
-  DrawerActions,
-} from '@react-navigation/native';
+import {DrawerActions} from '@react-navigation/native';
 import * as _ from 'lodash';
 import CustomIconsComponent from './CustomIcons';
 import Colors from '../constants/Colors';
@@ -24,7 +20,6 @@ import {useDispatch} from 'react-redux';
 import GlobalStyles from '../constants/GlobalStyles';
 
 export default function SideMenu(props) {
-  const [version, setVersion] = useState('');
   const [logoutLoader, setLogoutLoader] = useState(false);
   const dispatch = useDispatch();
   const menuOptions = [
@@ -41,10 +36,6 @@ export default function SideMenu(props) {
       displayName: 'Invoice',
     },
   ];
-
-  useEffect(() => {
-    setVersion(DeviceInfo.getVersion());
-  });
 
   navigateToScreen = async (route) => {
     props.navigation.dispatch(DrawerActions.closeDrawer());
@@ -125,11 +116,9 @@ export default function SideMenu(props) {
             <Text style={styles.menuText}>Logout</Text>
           </TouchableOpacity>
         )}
-        {version ? (
-          <View style={styles.versionContainer}>
-            <Text>v {version}</Text>
-          </View>
-        ) : null}
+        <View style={styles.versionContainer}>
+          <Text>v {DeviceInfo.getVersion()}</Text>
+        </View>
       </View>
     </SafeAreaView>
   );

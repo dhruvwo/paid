@@ -11,13 +11,17 @@ const appendCustomer = (data) => ({
   data,
 });
 
-const getCustomers = (accountId, filter_name, start) => {
+const clearCustomers = (data) => ({
+  type: CustomerState.CLEAR_CUSTOMERS,
+});
+
+const getCustomers = (filters) => {
   return (dispatch) => {
     return customer
-      .customers(accountId, filter_name, start)
+      .customers(filters)
       .then((response) => {
         if (response.status === 'success') {
-          if (start === 0) {
+          if (filters.start === 0) {
             dispatch(setCustomer(response));
           } else {
             dispatch(appendCustomer(response));
@@ -49,4 +53,5 @@ const addCustomer = (accountId, filter_name, start) => {
 export const customerAction = {
   getCustomers,
   addCustomer,
+  clearCustomers,
 };

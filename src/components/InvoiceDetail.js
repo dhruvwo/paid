@@ -1,22 +1,14 @@
-import React, {useState, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import {
   StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
   ScrollView,
   Dimensions,
   Modal,
+  SafeAreaView,
 } from 'react-native';
 import Header from '../components/Header';
-import {useDispatch, useSelector} from 'react-redux';
-import Colors from '../constants/Colors';
 import GlobalStyles from '../constants/GlobalStyles';
-import CustomIconsComponent from '../components/CustomIcons';
 import * as _ from 'lodash';
-import currencyFormatter from 'currency-formatter';
-import {cartAction} from '../store/actions';
-import {currency} from '../constants/Default';
 
 const screenHeight = Dimensions.get('window').height;
 
@@ -31,12 +23,14 @@ export default function InvoiceDetailModal(props) {
       onRequestClose={() => {
         props.closeModal();
       }}>
-      <Header
-        navigation={props.navigation}
-        title={props.invoice.name}
-        close={() => props.closeModal()}
-      />
-      <ScrollView contentContainerStyle={styles.modalContainer}></ScrollView>
+      <SafeAreaView style={GlobalStyles.flexStyle}>
+        <Header
+          navigation={props.navigation}
+          title={props.invoice.name}
+          close={() => props.closeModal()}
+        />
+        <ScrollView contentContainerStyle={styles.modalContainer}></ScrollView>
+      </SafeAreaView>
     </Modal>
   );
 }

@@ -8,11 +8,13 @@ export const AuthState = {
 export const ProductState = {
   SET_PRODUCTS: 'SET_PRODUCTS',
   APPEND_PRODUCTS: 'APPEND_PRODUCTS',
+  CLEAR_PRODUCTS: 'CLEAR_PRODUCTS',
 };
 
 export const CustomerState = {
   SET_CUSTOMERS: 'SET_CUSTOMERS',
   APPEND_CUSTOMERS: 'APPEND_CUSTOMERS',
+  CLEAR_CUSTOMERS: 'CLEAR_CUSTOMERS',
 };
 
 export const CartState = {
@@ -28,4 +30,5 @@ export const CartState = {
 export const InvoiceState = {
   SET_INVOICE: 'SET_INVOICE',
   APPEND_INVOICE: 'APPEND_INVOICE',
+  CLEAR_INVOICE: 'CLEAR_INVOICE',
 };

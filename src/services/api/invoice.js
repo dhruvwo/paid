@@ -2,21 +2,22 @@ import {API_URL} from '../../../env.json';
 import axios from 'axios';
 import Default from '../../constants/Default';
 
-const invoices = async (
-  accountId,
-  filter_total,
-  startAfter,
-  filter_customer,
-  created,
-  status,
-  dueDate,
-) => {
+const invoices = async (filters) => {
+  const {
+    accountId,
+    filterTotal,
+    startAfter,
+    filterCustomer,
+    created,
+    status,
+    dueDate,
+  } = filters;
   let params = {
     accountId: accountId,
     perPage: Default.perPageLimit,
     filterData: {
-      filter_total: filter_total,
-      filter_customer: filter_customer,
+      filter_total: filterTotal,
+      filter_customer: filterCustomer,
       created: created,
       status: status,
     },

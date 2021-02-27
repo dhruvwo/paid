@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TextInput,
   Modal,
+  SafeAreaView,
 } from 'react-native';
 import Colors from '../../constants/Colors';
 import GlobalStyles from '../../constants/GlobalStyles';
@@ -27,34 +28,37 @@ export default function Note(props) {
         props.closeModal(note);
         setNote('');
       }}>
-      <Header
-        navigation={props.navigation}
-        title="Note"
-        close={() => {
-          props.closeModal(note);
-          setNote('');
-        }}
-      />
-      <KeyboardAwareScrollView
-        style={GlobalStyles.flexStyle}
-        contentContainerStyle={styles.container}
-        keyboardShouldPersistTaps="handled">
-        <TextInput
-          style={styles.noteContainer}
-          multiline={true}
-          placeholder="Note"
-          value={note}
-          onChangeText={(note) => setNote(note)}
-        />
-        <TouchableOpacity
-          style={[GlobalStyles.secondaryButtonContainer, styles.btnStyle]}
-          onPress={() => {
+      <SafeAreaView style={GlobalStyles.flexStyle}>
+        <Header
+          navigation={props.navigation}
+          title="Note"
+          close={() => {
             props.closeModal(note);
             setNote('');
-          }}>
-          <Text style={GlobalStyles.secondaryButtonText}>Save</Text>
-        </TouchableOpacity>
-      </KeyboardAwareScrollView>
+          }}
+        />
+        <KeyboardAwareScrollView
+          style={GlobalStyles.flexStyle}
+          contentContainerStyle={styles.container}
+          keyboardShouldPersistTaps="handled">
+          <TextInput
+            style={styles.noteContainer}
+            multiline={true}
+            placeholder="Note"
+            textAlignVertical={'center'}
+            value={note}
+            onChangeText={(note) => setNote(note)}
+          />
+          <TouchableOpacity
+            style={[GlobalStyles.secondaryButtonContainer, styles.btnStyle]}
+            onPress={() => {
+              props.closeModal(note);
+              setNote('');
+            }}>
+            <Text style={GlobalStyles.secondaryButtonText}>Save</Text>
+          </TouchableOpacity>
+        </KeyboardAwareScrollView>
+      </SafeAreaView>
     </Modal>
   );
 }

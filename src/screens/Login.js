@@ -15,19 +15,18 @@ import GlobalStyles from '../constants/GlobalStyles';
 import SvgImageViewer from '../components/SvgImageViewer';
 import LocalIcons from '../constants/LocalIcons';
 import CustomIconsComponent from '../components/CustomIcons';
-import LinearGradient from 'react-native-linear-gradient';
 import {authAction} from '../store/actions/auth';
 
 export default function Login(props) {
   const dispatch = useDispatch();
-  const [email, setEmail] = useState(''); //hofel64825@agilekz.com
-  const [password, setPassword] = useState(''); //Paid123!
+  const [email, setEmail] = useState('hofel64825@agilekz.com'); //hofel64825@agilekz.com
+  const [password, setPassword] = useState('Paid123!'); //Paid123!
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoginLoader, setIsLoginLoader] = useState(false);
   const [secure, setSecure] = useState(true);
 
   const notInplement = () => {
-    return Alert.alert(``, `Comming soon.`, [
+    return Alert.alert(``, `Coming soon.`, [
       {
         text: 'Close',
         style: 'cancel',
@@ -149,23 +148,21 @@ export default function Login(props) {
             style={[
               GlobalStyles.secondaryButtonContainer,
               styles.buttonContainer,
-              !(email && password) ? {opacity: 0.6} : '',
+              !(email && password) ? GlobalStyles.buttonDisabledContainer : '',
             ]}
-            disabled={!(email && password)}
+            disabled={!(email && password) || isLoginLoader}
             onPress={() => onSubmit()}>
             {isLoginLoader ? (
               <ActivityIndicator
                 color={Colors.white}
-                size={25}
+                size={20}
                 style={styles.loaderIcon}
               />
             ) : (
-              <View>
-                <Text
-                  style={[GlobalStyles.secondaryButtonText, styles.loginText]}>
-                  Login
-                </Text>
-              </View>
+              <Text
+                style={[GlobalStyles.secondaryButtonText, styles.loginText]}>
+                Login
+              </Text>
             )}
           </TouchableOpacity>
         </View>
@@ -239,7 +236,11 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.bgColor,
     flex: 1,
   },
-  headerContainer: {flex: 1, flexDirection: 'row', width: '30%'},
+  headerContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    width: '30%',
+  },
   headerColorContainer: {
     height: '100%',
     width: '55%',
@@ -307,26 +308,24 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     marginHorizontal: 10,
     borderColor: '#E4E1E1',
+    alignItems: 'center',
     // backgroundColor: 'blue',
   },
   inputIcon: {
-    height: 50,
     paddingHorizontal: 10,
-    paddingTop: 18,
   },
   passwordIcon: {
-    height: 50,
     paddingHorizontal: 10,
-    paddingTop: 23,
   },
   inputLabel: {
     minHeight: 50,
-    height: 50,
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '700',
     paddingBottom: 0,
     flexGrow: 1,
     flexShrink: 1,
+    paddingTop: 0,
+    paddingBottom: 0,
   },
   loginContainer: {
     textAlign: 'center',
@@ -360,6 +359,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     width: '90%',
     borderWidth: 0,
+    height: 42,
   },
   signUpContainer: {
     flexDirection: 'row',
