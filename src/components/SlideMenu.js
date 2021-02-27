@@ -68,12 +68,14 @@ export default function SideMenu(props) {
 
   return (
     <SafeAreaView style={styles.mainContainer}>
-      <SvgImageViewer
-        style={styles.imageContainer}
-        LocalIcon={LocalIcons.svgIconSet.logo}
-        height={styles.logoStyle.height}
-        width={styles.logoStyle.height}
-      />
+      <View style={styles.imageContainer}>
+        <SvgImageViewer
+          LocalIcon={LocalIcons.svgIconSet.logo}
+          height={styles.logoStyle.height}
+          width={styles.logoStyle.height}
+        />
+        <Text style={styles.paymentsText}>Payments</Text>
+      </View>
       <ScrollView
         style={GlobalStyles.flexStyle}
         contentContainerStyle={styles.menuListContainer}>
@@ -131,14 +133,21 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     padding: 0,
+    paddingVertical: 5,
     margin: 0,
-    alignItems: 'flex-start',
-    justifyContent: 'flex-end',
+    justifyContent: 'center',
     backgroundColor: Colors.bgColor,
     alignItems: 'center',
+    flexDirection: 'row',
+  },
+  paymentsText: {
+    color: '#23499e',
+    fontSize: 29,
+    fontWeight: '600',
+    marginLeft: 2,
   },
   logoStyle: {
-    height: 130,
+    height: 60,
   },
   menuListContainer: {
     flexGrow: 1,
