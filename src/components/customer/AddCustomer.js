@@ -144,7 +144,7 @@ export default function AddCustomer(props) {
             </View>
             <View style={styles.btnContainer}>
               <TouchableOpacity
-                disabled={!isValid}
+                disabled={!isValid || isLoading}
                 style={[
                   GlobalStyles.secondaryButtonContainer,
                   isValid ? '' : GlobalStyles.buttonDisabledContainer,
