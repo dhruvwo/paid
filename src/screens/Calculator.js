@@ -51,7 +51,11 @@ export default function CalculatorScreen(props) {
     switch (type) {
       case 'number':
         if (parseFloat(currVal) === 0) {
-          setCurrVal(`${value}`);
+          if (currVal && currVal.includes('.')) {
+            setCurrVal(`${currVal}${value}`);
+          } else {
+            setCurrVal(`${value}`);
+          }
         } else if (
           getPrecision() !== 2 &&
           parseFloat(`${currVal}${value}`) <= 999999.99
