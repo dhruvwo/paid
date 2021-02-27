@@ -362,7 +362,7 @@ export default function Checkout(props) {
                   styles.btnStyle,
                   styles.invoiceButtonStyle,
                 ]}
-                disabled={!!_.isEmpty(customer)}
+                disabled={isLoadingPay || isLoading || !!_.isEmpty(customer)}
                 onPress={() => !_.isEmpty(customer) && sendInvoice()}>
                 {isLoading ? (
                   <ActivityIndicator
@@ -389,7 +389,11 @@ export default function Checkout(props) {
                   : GlobalStyles.buttonDisabledContainer,
                 styles.btnStyle,
               ]}
-              disabled={!(!_.isEmpty(customer) && customer.paymentMethod)}
+              disabled={
+                isLoadingPay ||
+                isLoading ||
+                !(!_.isEmpty(customer) && customer.paymentMethod)
+              }
               onPress={() =>
                 !_.isEmpty(customer) &&
                 customer.paymentMethod &&
