@@ -5,7 +5,6 @@ import {
   StyleSheet,
   SafeAreaView,
   TouchableOpacity,
-  Dimensions,
   Alert,
 } from 'react-native';
 import GlobalStyles from '../constants/GlobalStyles';
