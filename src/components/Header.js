@@ -25,8 +25,8 @@ export default function Header(props) {
       <View style={styles.titleContainer}>
         <Text style={styles.headerText}>{props.title}</Text>
       </View>
-      {props.hideCheckout && (
-        <View style={styles.buttonsContainer}>
+      <View style={styles.buttonsContainer}>
+        {props.showCheckout && (
           <TouchableOpacity
             style={styles.headerIconContainer}
             onPress={() => {
@@ -46,8 +46,8 @@ export default function Header(props) {
               <></>
             )}
           </TouchableOpacity>
-        </View>
-      )}
+        )}
+      </View>
     </View>
   );
 }

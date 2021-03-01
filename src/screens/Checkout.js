@@ -84,7 +84,7 @@ export default function Checkout(props) {
       dispatch(cartAction.clearItems());
       props.navigation.navigate('Products');
       ToastService({
-        message: 'Invoice send successfully.',
+        message: 'Invoice sent successfully.',
       });
     } else {
       ToastService({
@@ -406,7 +406,6 @@ export default function Checkout(props) {
             props.route.params === 'Product' ? 'Products' : 'QuickPay',
           )
         }
-        hideCheckout={true}
         title={'Checkout'}
       />
       {data.length ? renderHeader() : <></>}

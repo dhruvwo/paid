@@ -117,6 +117,7 @@ export default function CalculatorScreen(props) {
         navigation={props.navigation}
         title={'Quick Pay'}
         showMenu={true}
+        showCheckout={true}
       />
       <View style={GlobalStyles.flexStyle}>
         <View style={[GlobalStyles.row, styles.container]}>
