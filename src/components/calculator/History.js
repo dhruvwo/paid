@@ -35,7 +35,7 @@ export default function History(props) {
         price: parseFloat(newValue) * 100,
       };
       setNewValue('');
-      dispatch(cartAction.updateCart(data));
+      dispatch(cartAction.updateItem(data));
     }
   };
 
@@ -49,6 +49,10 @@ export default function History(props) {
       },
     ]);
   };
+
+  const calItemsOnly = cartState.items.filter((o) => {
+    return !o.priceId;
+  });
 
   return (
     <Modal
@@ -67,8 +71,8 @@ export default function History(props) {
           style={GlobalStyles.flexStyle}
           contentContainerStyle={styles.container}
           keyboardShouldPersistTaps="handled">
-          {cartState?.quickPay?.length ? (
-            cartState.quickPay.map((val, i) => {
+          {calItemsOnly?.length ? (
+            calItemsOnly.map((val, i) => {
               return (
                 <View style={styles.titleIconContainer} key={val.id}>
                   {isEditable && isEditable === val.id ? (

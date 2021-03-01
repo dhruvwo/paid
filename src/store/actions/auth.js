@@ -76,8 +76,7 @@ const getUserSetup = () => {
 const logout = () => {
   return (dispatch) => {
     dispatch(clearUser());
-    dispatch(cartAction.clearCart());
-    dispatch(cartAction.clearQuickPay());
+    dispatch(cartAction.clearItems());
     dispatch(customerAction.clearCustomers());
     dispatch(productAction.clearProducts());
     dispatch(invoiceAction.clearInvoices());

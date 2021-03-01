@@ -30,12 +30,12 @@ export default function CalculatorScreen(props) {
 
   const addCart = async (current) => {
     const data = {
-      id: 'quickPay' + cartState?.quickPay?.length,
+      id: 'quickPay' + cartState?.items?.length,
       product: {type: 'quick Pay', note: note},
       price: current * 100,
       qty: 1,
     };
-    await dispatch(cartAction.addQuickPay(data));
+    await dispatch(cartAction.addItem(data));
     setCurrVal(0);
     setNote('');
   };
@@ -43,7 +43,7 @@ export default function CalculatorScreen(props) {
   const fnClearAll = async () => {
     setCurrVal(0);
     setNote('');
-    await dispatch(cartAction.clearQuickPay());
+    await dispatch(cartAction.clearItems('onlyCalc'));
   };
 
   const handleTap = (type, value) => {
@@ -88,8 +88,10 @@ export default function CalculatorScreen(props) {
 
   const getResult = () => {
     let add = 0;
-    cartState.quickPay.map((val, i) => {
-      add += val.price;
+    cartState.items.forEach((val) => {
+      if (!val.priceId) {
+        add += val.price;
+      }
     });
     return add;
   };
@@ -115,7 +117,6 @@ export default function CalculatorScreen(props) {
         navigation={props.navigation}
         title={'Quick Pay'}
         showMenu={true}
-        showCart={'Calculator'}
       />
       <View style={GlobalStyles.flexStyle}>
         <View style={[GlobalStyles.row, styles.container]}>
@@ -141,7 +142,7 @@ export default function CalculatorScreen(props) {
               }>
               <Text style={[styles.amountText, styles.totalText]}>
                 {currencyFormatter.format(
-                  (getResult() + getResult() * Default.tax) / 100,
+                  (getResult() * (1 + Default.tax)) / 100,
                   {
                     code: _.toUpper(Default.currency),
                   },
@@ -153,14 +154,14 @@ export default function CalculatorScreen(props) {
 
         <View style={styles.inputContainer}>
           <TouchableOpacity
-            // disabled={!cartState??.quickPay?.length}
+            // disabled={!cartState??.items?.length}
             onPress={() => {
               setShowHistoryModal(true);
             }}>
             <CustomIconsComponent
               style={styles.historyIconStyle}
               type={'MaterialIcons'}
-              color={cartState?.quickPay?.length ? Colors.primary : Colors.grey}
+              color={cartState?.items?.length ? Colors.primary : Colors.grey}
               size={25}
               name={'history-toggle-off'}
             />
@@ -242,7 +243,7 @@ export default function CalculatorScreen(props) {
               text="AC"
               theme="secondary"
               onPress={() => {
-                cartState?.quickPay?.length
+                cartState?.items?.length
                   ? Alert.alert('', 'Do you want to clear all?', [
                       {
                         text: 'Clear',
@@ -348,7 +349,9 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     alignItems: 'center',
   },
-  totalHeaderText: {fontWeight: 'bold'},
+  totalHeaderText: {
+    fontWeight: 'bold',
+  },
   totalText: {
     color: Colors.primary,
     fontWeight: 'bold',

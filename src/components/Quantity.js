@@ -26,7 +26,7 @@ export default function QuantityComponent(props) {
   }, [props.item]);
 
   const isProductInCart = () => {
-    const index = _.findIndex(cartState.products, {id: props.item.id});
+    const index = _.findIndex(cartState.items, {id: props.item.id});
     if (index > -1) {
       return true;
     } else {

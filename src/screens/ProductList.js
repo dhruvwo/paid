@@ -165,7 +165,6 @@ export default function ProductList(props) {
         navigation={props.navigation}
         title={'Products'}
         showMenu={true}
-        showCart={'Product'}
       />
       <View style={styles.container}>
         <View style={styles.searchContainer}>

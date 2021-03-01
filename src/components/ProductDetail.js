@@ -23,7 +23,6 @@ import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 export default function ProductDetailModal(props) {
   const dispatch = useDispatch();
   const cartState = useSelector(({cart}) => cart);
-  const cardProduct = cartState.products;
   const [qty, setQty] = useState(1);
   const [isCartProduct, setIsCartProduct] = useState(false);
 
@@ -32,9 +31,9 @@ export default function ProductDetailModal(props) {
   }, [props.product]);
 
   const fnIsCartProduct = () => {
-    const index = _.findIndex(cardProduct, {id: props?.product?.id});
+    const index = _.findIndex(cartState.items, {id: props?.product?.id});
     if (index > -1) {
-      setQty(cardProduct[index].qty);
+      setQty(cartState.items[index].qty);
       setIsCartProduct(true);
     } else {
       setQty(1);
@@ -61,7 +60,7 @@ export default function ProductDetailModal(props) {
       {
         text: 'Remove',
         onPress: () => {
-          dispatch(cartAction.removeProduct(item.id));
+          dispatch(cartAction.removeItem(item.id));
           setIsCartProduct(false);
         },
       },
@@ -74,9 +73,9 @@ export default function ProductDetailModal(props) {
 
   const onSubmit = async () => {
     if (isCartProduct) {
-      await dispatch(cartAction.updateCart(data));
+      await dispatch(cartAction.updateItem(data));
     } else {
-      await dispatch(cartAction.addProduct(data));
+      await dispatch(cartAction.addItem(data));
       setIsCartProduct(true);
     }
   };

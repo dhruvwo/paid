@@ -34,10 +34,7 @@ export default function Checkout(props) {
   }));
 
   const stripeDetails = reducState?.auth?.userSetup?.payments?.stripeDetails;
-  const data =
-    props.route.params === 'Product'
-      ? reducState.cart.products
-      : reducState.cart.quickPay;
+  const data = reducState.cart.items;
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingPay, setIsLoadingPay] = useState(false);
   const [customer, setCustomer] = useState({});
@@ -84,7 +81,7 @@ export default function Checkout(props) {
     const invoice = await dispatch(invoiceAction.sendInvoice(data));
     if (invoice.status === 'success') {
       setIsLoading(false);
-      dispatch(cartAction.clearCart());
+      dispatch(cartAction.clearItems());
       props.navigation.navigate('Products');
       ToastService({
         message: 'Invoice send successfully.',
@@ -112,9 +109,7 @@ export default function Checkout(props) {
     const pay = await dispatch(invoiceAction.sendQuickPayInvoice(data));
     if (pay.status === 'success') {
       setIsLoadingPay(false);
-      props.route.params === 'Product'
-        ? dispatch(cartAction.clearCart())
-        : dispatch(cartAction.clearQuickPay());
+      dispatch(cartAction.clearItems());
       props.navigation.navigate(
         props.route.params === 'Product' ? 'Products' : 'QuickPay',
       );
@@ -158,63 +153,61 @@ export default function Checkout(props) {
     return add;
   };
 
-  const updateCart = async (item) => {
-    await dispatch(cartAction.updateCart(item));
+  const updateCart = (item) => {
+    dispatch(cartAction.updateItem(item));
   };
 
   const deleteProduct = (id) => {
-    Alert.alert(
-      '',
-      `Do you want to remove this ${
-        props.route.params === 'Product' ? 'product' : 'payment'
-      } from cart?`,
-      [
-        {
-          text: 'Remove',
-          onPress: () => {
-            props.route.params === 'Product'
-              ? dispatch(cartAction.removeProduct(id))
-              : dispatch(cartAction.removeQuickPay(id));
-          },
+    Alert.alert('', `Do you want to remove this item from cart?`, [
+      {
+        text: 'Remove',
+        onPress: () => {
+          dispatch(cartAction.removeItem(id));
         },
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-      ],
-    );
+      },
+      {
+        text: 'Cancel',
+        style: 'cancel',
+      },
+    ]);
   };
 
   const renderProductItem = (item, index) => {
     return (
       <TouchableOpacity
+        disabled={!item.priceId}
         style={styles.productContainer}
         key={item.id}
         onPress={() => {
           setShowProductDetailModal(true);
           setSelectedProduct(item.product);
         }}>
-        <FastImage
-          style={styles.productImage}
-          resizeMode={'cover'}
-          source={require('../assets/products/product7.png')}
-        />
-        <View
-          style={[
-            styles.productDetailContainer,
-            styles.productWithImageContainer,
-          ]}>
-          <Text style={styles.productName}>{item.product.name}</Text>
+        {item.priceId && (
+          <FastImage
+            style={styles.productImage}
+            resizeMode={'cover'}
+            source={require('../assets/products/product7.png')}
+          />
+        )}
+        <View style={[styles.productDetailContainer]}>
+          {item.priceId && (
+            <Text style={styles.productName}>{item.product.name}</Text>
+          )}
           <Text style={styles.productPrice}>
             {currencyFormatter.format((item.price / 100) * item.qty, {
               code: _.toUpper(Default.currency),
             })}
           </Text>
-          <QuantityComponent
-            item={item}
-            deleteProduct={(id) => deleteProduct(id)}
-            getQuantity={(data) => updateCart(data)}
-          />
+          {item.priceId && (
+            <QuantityComponent
+              item={item}
+              deleteProduct={(id) => deleteProduct(id)}
+              getQuantity={(data) => updateCart(data)}
+            />
+          )}
+          {item.product.note ? (
+            <Text style={styles.productPrice}>{item.product.note}</Text>
+          ) : null}
         </View>
         <TouchableOpacity onPress={() => deleteProduct(item.id)}>
           <CustomIconsComponent
@@ -224,32 +217,6 @@ export default function Checkout(props) {
           />
         </TouchableOpacity>
       </TouchableOpacity>
-    );
-  };
-
-  const renderQuickPayItem = (item, index) => {
-    return (
-      <View style={styles.productContainer} key={item.id}>
-        <View style={styles.productDetailContainer}>
-          <Text style={styles.productName}>
-            {currencyFormatter.format((item.price / 100) * item.qty, {
-              code: _.toUpper(Default.currency),
-            })}
-          </Text>
-          {item.product.note ? (
-            <Text style={styles.productPrice}>{item.product.note}</Text>
-          ) : (
-            <></>
-          )}
-        </View>
-        <TouchableOpacity onPress={() => deleteProduct(item.id)}>
-          <CustomIconsComponent
-            name={'delete-outline'}
-            type={'MaterialCommunityIcons'}
-            color={Colors.red}
-          />
-        </TouchableOpacity>
-      </View>
     );
   };
 
@@ -313,6 +280,16 @@ export default function Checkout(props) {
     );
   };
 
+  const isOnlyProduct = () => {
+    let isProduct = true;
+    data.forEach((o) => {
+      if (!o.priceId && isProduct) {
+        isProduct = false;
+      }
+    });
+    return !isProduct;
+  };
+
   const renderFooter = () => {
     return (
       <>
@@ -352,7 +329,7 @@ export default function Checkout(props) {
         <View style={styles.buttonContainer}>
           {!!error && <Text style={styles.errorMessage}>{error}</Text>}
           <View style={GlobalStyles.row}>
-            {props.route.params === 'Product' && (
+            {!isOnlyProduct() && (
               <TouchableOpacity
                 style={[
                   GlobalStyles.secondaryButtonContainer,
@@ -362,7 +339,7 @@ export default function Checkout(props) {
                   styles.btnStyle,
                   styles.invoiceButtonStyle,
                 ]}
-                disabled={isLoadingPay || isLoading || !!_.isEmpty(customer)}
+                disabled={isLoadingPay || isLoading || _.isEmpty(customer)}
                 onPress={() => !_.isEmpty(customer) && sendInvoice()}>
                 {isLoading ? (
                   <ActivityIndicator
@@ -392,13 +369,10 @@ export default function Checkout(props) {
               disabled={
                 isLoadingPay ||
                 isLoading ||
-                !(!_.isEmpty(customer) && customer.paymentMethod)
+                _.isEmpty(customer) ||
+                !(customer && customer.paymentMethod)
               }
-              onPress={() =>
-                !_.isEmpty(customer) &&
-                customer.paymentMethod &&
-                sendQuickPayInvoice()
-              }>
+              onPress={() => sendQuickPayInvoice()}>
               {isLoadingPay ? (
                 <ActivityIndicator
                   color={Colors.white}
@@ -422,6 +396,7 @@ export default function Checkout(props) {
       </>
     );
   };
+
   return (
     <SafeAreaView style={GlobalStyles.flexStyle}>
       <Header
@@ -431,7 +406,8 @@ export default function Checkout(props) {
             props.route.params === 'Product' ? 'Products' : 'QuickPay',
           )
         }
-        title={props.route.params === 'Product' ? 'Checkout' : 'Quick Charge'}
+        hideCheckout={true}
+        title={'Checkout'}
       />
       {data.length ? renderHeader() : <></>}
       <KeyboardAwareFlatList
@@ -441,11 +417,7 @@ export default function Checkout(props) {
         data={data}
         // ListHeaderComponent={data.length && renderHeader}
         // ListFooterComponent={data.length && renderFooter}
-        renderItem={({item, index}) =>
-          props.route.params === 'Product'
-            ? renderProductItem(item, index)
-            : renderQuickPayItem(item, index)
-        }
+        renderItem={({item, index}) => renderProductItem(item, index)}
         keyExtractor={(item) => item.id}
         ListEmptyComponent={renderEmptyComponent}
       />
@@ -536,12 +508,14 @@ const styles = StyleSheet.create({
   productImage: {
     height: 90,
     width: 68,
+    marginRight: 16,
   },
   productContainer: {
     margin: 2,
     flexDirection: 'row',
     backgroundColor: Colors.white,
-    padding: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
     justifyContent: 'center',
     shadowColor: '#303838',
     shadowOffset: {width: 0, height: 1},
@@ -559,9 +533,6 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     flexShrink: 1,
     justifyContent: 'center',
-  },
-  productWithImageContainer: {
-    paddingHorizontal: 20,
   },
   productName: {
     fontSize: 16,

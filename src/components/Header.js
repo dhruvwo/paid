@@ -6,8 +6,6 @@ import {useSelector} from 'react-redux';
 
 export default function Header(props) {
   const cartState = useSelector(({cart}) => cart);
-  const cartData =
-    props.showCart === 'Product' ? cartState?.products : cartState?.quickPay;
 
   return (
     <View style={styles.pageHeader(props.showMenu)}>
@@ -27,12 +25,12 @@ export default function Header(props) {
       <View style={styles.titleContainer}>
         <Text style={styles.headerText}>{props.title}</Text>
       </View>
-      <View style={styles.buttonsContainer}>
-        {props.showCart ? (
+      {props.hideCheckout && (
+        <View style={styles.buttonsContainer}>
           <TouchableOpacity
             style={styles.headerIconContainer}
             onPress={() => {
-              props.navigation.navigate('Checkout', props.showCart);
+              props.navigation.navigate('Checkout');
             }}>
             <CustomIconsComponent
               style={styles.checkOutIcon}
@@ -40,18 +38,16 @@ export default function Header(props) {
               type={'FontAwesome5'}
               color={Colors.white}
             />
-            {cartData.length ? (
+            {cartState.items.length ? (
               <View style={styles.badge}>
-                <Text style={styles.badgeText}>{cartData.length}</Text>
+                <Text style={styles.badgeText}>{cartState.items.length}</Text>
               </View>
             ) : (
               <></>
             )}
           </TouchableOpacity>
-        ) : (
-          <></>
-        )}
-      </View>
+        </View>
+      )}
     </View>
   );
 }
