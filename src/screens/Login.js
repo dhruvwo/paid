@@ -19,8 +19,8 @@ import {authAction} from '../store/actions/auth';
 
 export default function Login(props) {
   const dispatch = useDispatch();
-  const [email, setEmail] = useState('hofel64825@agilekz.com'); //hofel64825@agilekz.com
-  const [password, setPassword] = useState('Paid123!'); //Paid123!
+  const [email, setEmail] = useState(''); //hofel64825@agilekz.com
+  const [password, setPassword] = useState(''); //Paid123!
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoginLoader, setIsLoginLoader] = useState(false);
   const [secure, setSecure] = useState(true);

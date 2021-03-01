@@ -40,7 +40,6 @@ export default function QuantityComponent(props) {
     if (parseInt(qty) > 0 && parseInt(qty) <= 2001) {
       props.item.qty = parseInt(qty);
     } else if (qty === '') {
-      props.item.qty = 1;
       setQty(1);
     } else {
       setQty(1);
