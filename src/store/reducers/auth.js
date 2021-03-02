@@ -26,6 +26,12 @@ export const auth = (state = initialState, action) => {
         ...state,
         userSetup: action.data,
       };
+    case AuthState.SET_TAX:
+      AsyncStorage.setItem('tax', JSON.stringify(action.data));
+      return {
+        ...state,
+        tax: action.data,
+      };
     case AuthState.CLEAR_USER:
       AsyncStorage.removeItem('authenticationResponse');
       AsyncStorage.removeItem('userSetup');

@@ -22,7 +22,10 @@ import {useDispatch, useSelector} from 'react-redux';
 
 export default function CalculatorScreen(props) {
   const dispatch = useDispatch();
-  const cartState = useSelector(({cart}) => cart);
+  const cartState = useSelector(({cart, auth}) => ({
+    cart,
+    auth,
+  }));
   const [currVal, setCurrVal] = useState(0);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [showNoteModal, setShowNoteModal] = useState(false);
@@ -30,7 +33,7 @@ export default function CalculatorScreen(props) {
 
   const addCart = async (current) => {
     const data = {
-      id: 'quickPay' + cartState?.items?.length,
+      id: 'quickPay' + cartState?.cart?.items?.length,
       product: {type: 'quick Pay', note: note},
       price: current * 100,
       qty: 1,
@@ -88,7 +91,7 @@ export default function CalculatorScreen(props) {
 
   const getResult = () => {
     let add = 0;
-    cartState.items.forEach((val) => {
+    cartState.cart.items.forEach((val) => {
       if (!val.priceId) {
         add += val.price;
       }
@@ -130,8 +133,12 @@ export default function CalculatorScreen(props) {
             </Text>
           </View>
           <View style={[styles.amountContainer]}>
-            <Text style={styles.amountHeaderText}>Tax ({Default.taxName})</Text>
-            <Text style={styles.amountText}>{Default.tax * 100}%</Text>
+            <Text style={styles.amountHeaderText}>
+              Tax ({cartState?.auth?.tax?.display_name})
+            </Text>
+            <Text style={styles.amountText}>
+              {cartState?.auth?.tax?.percentage * 100}%
+            </Text>
           </View>
           <View style={styles.amountContainer}>
             <Text style={[styles.amountHeaderText, styles.totalHeaderText]}>
@@ -143,7 +150,7 @@ export default function CalculatorScreen(props) {
               }>
               <Text style={[styles.amountText, styles.totalText]}>
                 {currencyFormatter.format(
-                  (getResult() * (1 + Default.tax)) / 100,
+                  (getResult() * (1 + cartState?.auth?.tax?.percentage)) / 100,
                   {
                     code: _.toUpper(Default.currency),
                   },
@@ -155,14 +162,16 @@ export default function CalculatorScreen(props) {
 
         <View style={styles.inputContainer}>
           <TouchableOpacity
-            // disabled={!cartState??.items?.length}
+            // disabled={!cartState?.cart?.items?.length}
             onPress={() => {
               setShowHistoryModal(true);
             }}>
             <CustomIconsComponent
               style={styles.historyIconStyle}
               type={'MaterialIcons'}
-              color={cartState?.items?.length ? Colors.primary : Colors.grey}
+              color={
+                cartState?.cart?.items?.length ? Colors.primary : Colors.grey
+              }
               size={25}
               name={'history-toggle-off'}
             />
@@ -244,7 +253,7 @@ export default function CalculatorScreen(props) {
               text="AC"
               theme="secondary"
               onPress={() => {
-                cartState?.items?.length
+                cartState?.cart?.items?.length
                   ? Alert.alert('', 'Do you want to clear all?', [
                       {
                         text: 'Clear',

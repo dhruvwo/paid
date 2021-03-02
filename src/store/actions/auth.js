@@ -22,6 +22,11 @@ const setUserSetup = (data) => ({
   data,
 });
 
+const setTax = (data) => ({
+  type: AuthState.SET_TAX,
+  data,
+});
+
 const clearUser = () => ({
   type: AuthState.CLEAR_USER,
 });
@@ -75,6 +80,21 @@ const getUserSetup = () => {
   };
 };
 
+const getTax = (accountId) => {
+  return (dispatch) => {
+    return auth
+      .getTax(accountId)
+      .then((response) => {
+        dispatch(setTax(response?.taxRateDetails?.data[0]));
+        return response?.taxRateDetails?.data[0];
+      })
+      .catch((err) => {
+        console.error('error in get tax in invoice action', err);
+        return err.response;
+      });
+  };
+};
+
 const logout = () => {
   return (dispatch) => {
     dispatch(clearUser());
@@ -97,5 +117,6 @@ export const authAction = {
   login,
   setUserSetup,
   getUserSetup,
+  getTax,
   logout,
 };

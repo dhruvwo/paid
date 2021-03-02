@@ -68,13 +68,13 @@ export default function Checkout(props) {
     const data = {
       accountId: stripeDetails.accountId,
       companyId: stripeDetails.companyId,
-      amount: getTotal() + getTotal() * Default.tax,
+      amount: getTotal() + getTotal() * reducState?.auth?.tax?.percentage,
       email: customer.email,
       customer: customer.customerId,
       subTotal: getTotal(),
       productItemsArray: getProductItemsArray(),
       currency: Default.currency,
-      default_tax_rates: [Default.taxId],
+      default_tax_rates: [reducState?.auth?.tax?.id],
       due_date: moment().format('YYYY-MM-DD HH:mm:ss'),
       terms: 'due',
     };
@@ -100,7 +100,7 @@ export default function Checkout(props) {
     const data = {
       accountId: stripeDetails.accountId,
       companyId: stripeDetails.companyId,
-      amount: getTotal() + getTotal() * Default.tax,
+      amount: getTotal() + getTotal() * reducState?.auth?.tax?.percentage,
       email: customer.email,
       customer: customer.customerId,
       currency: Default.currency,
@@ -305,19 +305,25 @@ export default function Checkout(props) {
             </View>
             <View style={styles.priceDetailContainer}>
               <Text style={styles.titleText}>
-                Tax ({Default.tax * 100}% {Default.taxName})
+                Tax ({reducState?.auth?.tax?.percentage * 100}%
+                {reducState?.auth?.tax?.display_name})
               </Text>
               <Text style={styles.priceText}>
-                {currencyFormatter.format((getTotal() * Default.tax) / 100, {
-                  code: _.toUpper(Default.currency),
-                })}
+                {currencyFormatter.format(
+                  (getTotal() * reducState?.auth?.tax?.percentage) / 100,
+                  {
+                    code: _.toUpper(Default.currency),
+                  },
+                )}
               </Text>
             </View>
             <View style={[styles.priceDetailContainer, styles.totalContainer]}>
               <Text style={styles.totalText}>Total Amount </Text>
               <Text style={styles.totalText}>
                 {currencyFormatter.format(
-                  (getTotal() + getTotal() * Default.tax) / 100,
+                  (getTotal() +
+                    getTotal() * reducState?.auth?.tax?.percentage) /
+                    100,
                   {
                     code: _.toUpper(Default.currency),
                   },

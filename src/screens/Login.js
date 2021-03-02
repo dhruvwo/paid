@@ -39,7 +39,10 @@ export default function Login(props) {
     await dispatch(authAction.getServiceKey());
     const loginData = await dispatch(authAction.login(email, password));
     if (loginData?.status === 'success') {
-      await dispatch(authAction.getUserSetup());
+      const userSetupData = await dispatch(authAction.getUserSetup());
+      await dispatch(
+        authAction.getTax(userSetupData.payments.stripeDetails.accountId),
+      );
       setIsLoginLoader(false);
       props.navigation.replace('DrawerNavigator');
     } else if (loginData?.data?.status === 'failed') {
