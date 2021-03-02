@@ -7,10 +7,10 @@ import {
   TextInput,
   ActivityIndicator,
   Modal,
+  SafeAreaView,
 } from 'react-native';
 import Colors from '../../constants/Colors';
 import GlobalStyles from '../../constants/GlobalStyles';
-import CustomIconsComponent from '../CustomIcons';
 import {customerAction} from '../../store/actions';
 import {useSelector, useDispatch} from 'react-redux';
 import * as _ from 'lodash';
@@ -20,14 +20,8 @@ import Header from '../Header';
 
 export default function AddCustomer(props) {
   const dispatch = useDispatch();
-  const customerState = useSelector(({auth, customer}) => {
-    return {
-      auth,
-      customer,
-    };
-  });
-  const accountId =
-    customerState?.auth?.userSetup?.payments?.stripeDetails?.accountId;
+  const authState = useSelector(({auth}) => auth);
+  const accountId = authState?.userSetup?.payments?.stripeDetails?.accountId;
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -73,99 +67,104 @@ export default function AddCustomer(props) {
       onRequestClose={() => {
         props.closeModal();
       }}>
-      <Header
-        navigation={props.navigation}
-        title="Add Customer"
-        close={() => props.closeModal()}
-      />
-      <KeyboardAwareScrollView
-        style={GlobalStyles.flexStyle}
-        contentContainerStyle={styles.mainContainer}
-        keyboardShouldPersistTaps="handled">
-        <View style={styles.container}>
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.inputLabel}
-              underlineColorAndroid="transparent"
-              placeholder="Business Name"
-              value={data.businessName}
-              onChangeText={(businessName) =>
-                setData({...data, businessName: businessName})
-              }
-            />
-          </View>
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.inputLabel}
-              underlineColorAndroid="transparent"
-              placeholder="First Name*"
-              value={data.firstName}
-              onChangeText={(firstName) =>
-                setData({...data, firstName: firstName})
-              }
-            />
-          </View>
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.inputLabel}
-              underlineColorAndroid="transparent"
-              placeholder="Last Name*"
-              value={data.lastName}
-              onChangeText={(lastName) =>
-                setData({...data, lastName: lastName})
-              }
-            />
-          </View>
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.inputLabel}
-              keyboardType={'email-address'}
-              underlineColorAndroid="transparent"
-              placeholder="Email*"
-              value={data.email}
-              onChangeText={(email) => setData({...data, email: email.trim()})}
-            />
-          </View>
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.inputLabel}
-              keyboardType={'numeric'}
-              underlineColorAndroid="transparent"
-              placeholder="Phone"
-              maxLength={10}
-              value={data.phone}
-              onChangeText={(phone) => setData({...data, phone: phone})}
-            />
-          </View>
-          <View style={styles.errorContainer}>
-            {error ? (
-              <Text style={styles.errorMessage}>{error}</Text>
-            ) : (
-              <View />
-            )}
-          </View>
-          <View style={styles.btnContainer}>
-            <TouchableOpacity
-              disabled={!isValid}
-              style={[
-                GlobalStyles.secondaryButtonContainer,
-                isValid ? '' : GlobalStyles.buttonDisabledContainer,
-                styles.btnStyle,
-              ]}
-              onPress={() => addCustomer()}>
-              {isLoading ? (
-                <ActivityIndicator
-                  color={Colors.white}
-                  size={25}
-                  style={styles.loaderIcon}
-                />
+      <SafeAreaView style={GlobalStyles.flexStyle}>
+        <Header
+          navigation={props.navigation}
+          title="Add Customer"
+          close={() => props.closeModal()}
+        />
+        <KeyboardAwareScrollView
+          style={GlobalStyles.flexStyle}
+          contentContainerStyle={styles.mainContainer}
+          keyboardShouldPersistTaps="handled">
+          <View style={styles.container}>
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.inputLabel}
+                underlineColorAndroid="transparent"
+                placeholder="Business Name"
+                value={data.businessName}
+                onChangeText={(businessName) =>
+                  setData({...data, businessName: businessName})
+                }
+              />
+            </View>
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.inputLabel}
+                underlineColorAndroid="transparent"
+                placeholder="First Name*"
+                value={data.firstName}
+                onChangeText={(firstName) =>
+                  setData({...data, firstName: firstName})
+                }
+              />
+            </View>
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.inputLabel}
+                underlineColorAndroid="transparent"
+                placeholder="Last Name*"
+                value={data.lastName}
+                onChangeText={(lastName) =>
+                  setData({...data, lastName: lastName})
+                }
+              />
+            </View>
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.inputLabel}
+                keyboardType={'email-address'}
+                underlineColorAndroid="transparent"
+                placeholder="Email*"
+                autoCapitalize={'none'}
+                value={data.email}
+                onChangeText={(email) =>
+                  setData({...data, email: email.trim()})
+                }
+              />
+            </View>
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.inputLabel}
+                keyboardType={'numeric'}
+                underlineColorAndroid="transparent"
+                placeholder="Phone"
+                maxLength={10}
+                value={data.phone}
+                onChangeText={(phone) => setData({...data, phone: phone})}
+              />
+            </View>
+            <View style={styles.errorContainer}>
+              {error ? (
+                <Text style={styles.errorMessage}>{error}</Text>
               ) : (
-                <Text style={GlobalStyles.secondaryButtonText}>Add</Text>
+                <View />
               )}
-            </TouchableOpacity>
+            </View>
+            <View style={styles.btnContainer}>
+              <TouchableOpacity
+                disabled={!isValid || isLoading}
+                style={[
+                  GlobalStyles.secondaryButtonContainer,
+                  isValid ? '' : GlobalStyles.buttonDisabledContainer,
+                  styles.btnStyle,
+                ]}
+                onPress={() => addCustomer()}>
+                {isLoading ? (
+                  <ActivityIndicator
+                    color={Colors.white}
+                    size={25}
+                    style={styles.loaderIcon}
+                  />
+                ) : (
+                  <Text style={GlobalStyles.secondaryButtonText}>Add</Text>
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-      </KeyboardAwareScrollView>
+        </KeyboardAwareScrollView>
+      </SafeAreaView>
     </Modal>
   );
 }

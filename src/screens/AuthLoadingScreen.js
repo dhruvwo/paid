@@ -5,6 +5,7 @@ import Colors from '../constants/Colors';
 import {authAction} from '../store/actions';
 import {useDispatch} from 'react-redux';
 import SplashScreen from 'react-native-splash-screen';
+import {navigate} from '../RootNavigation';
 
 export default function AuthLoadingScreen(props) {
   const dispatch = useDispatch();
@@ -29,7 +30,8 @@ export default function AuthLoadingScreen(props) {
       if (authenticationResponse && authenticationResponse.token) {
         pageName = 'DrawerNavigator';
       }
-      props.navigation.navigate(pageName);
+      // props.navigation.navigate(pageName);
+      navigate(pageName, {reset: true});
     }
     getUserToken();
   }, []);

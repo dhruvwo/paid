@@ -22,12 +22,7 @@ import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 
 export default function ProductDetailModal(props) {
   const dispatch = useDispatch();
-  const cartState = useSelector(({cart}) => {
-    return {
-      cart,
-    };
-  });
-  const cardProduct = cartState.cart.products;
+  const cartState = useSelector(({cart}) => cart);
   const [qty, setQty] = useState(1);
   const [isCartProduct, setIsCartProduct] = useState(false);
 
@@ -36,9 +31,9 @@ export default function ProductDetailModal(props) {
   }, [props.product]);
 
   const fnIsCartProduct = () => {
-    const index = _.findIndex(cardProduct, {id: props?.product?.id});
+    const index = _.findIndex(cartState.items, {id: props?.product?.id});
     if (index > -1) {
-      setQty(cardProduct[index].qty);
+      setQty(cartState.items[index].qty);
       setIsCartProduct(true);
     } else {
       setQty(1);
@@ -61,11 +56,11 @@ export default function ProductDetailModal(props) {
   };
 
   const removeProduct = (item) => {
-    Alert.alert('', 'Do you really want to remove product from cart?', [
+    Alert.alert('', 'Do you want to remove product from cart?', [
       {
-        text: 'yes',
+        text: 'Remove',
         onPress: () => {
-          dispatch(cartAction.removeProduct(item.id));
+          dispatch(cartAction.removeItem(item.id));
           setIsCartProduct(false);
         },
       },
@@ -78,9 +73,9 @@ export default function ProductDetailModal(props) {
 
   const onSubmit = async () => {
     if (isCartProduct) {
-      await dispatch(cartAction.updateCart(data));
+      await dispatch(cartAction.updateItem(data));
     } else {
-      await dispatch(cartAction.addProduct(data));
+      await dispatch(cartAction.addItem(data));
       setIsCartProduct(true);
     }
   };
@@ -92,95 +87,101 @@ export default function ProductDetailModal(props) {
       onRequestClose={() => {
         props.closeModal();
       }}>
-      <View style={GlobalStyles.flexStyle}>
-        <TouchableOpacity
-          style={styles.headerIconContainer}
-          onPress={() => {
-            props.closeModal();
-          }}>
-          <CustomIconsComponent
-            type={'Ionicons'}
-            name={'chevron-back'}
-            color={Colors.greyText}
-            size={40}
-          />
-        </TouchableOpacity>
-
-        <KeyboardAwareScrollView
-          style={GlobalStyles.flexStyle}
-          contentContainerStyle={styles.container}
-          keyboardShouldPersistTaps="handled">
-          <View style={styles.productImageContainer}>
-            <FastImage
-              style={styles.productImage}
-              resizeMode={'contain'}
-              source={require('../assets/products/product7.png')}
+      <SafeAreaView style={GlobalStyles.flexStyle}>
+        <View style={styles.mainContainer}>
+          <TouchableOpacity
+            style={styles.headerIconContainer}
+            onPress={() => {
+              props.closeModal();
+            }}>
+            <CustomIconsComponent
+              type={'Ionicons'}
+              name={'chevron-back'}
+              color={Colors.greyText}
+              size={40}
             />
-          </View>
-          <View style={styles.productDetailContainer}>
-            <Text style={styles.productText}>{props?.product?.name}</Text>
-            <Text style={styles.descriptionText}>
-              {props?.product?.description}
-            </Text>
-            <View style={styles.detailsContainer}>
-              <View style={styles.priceContainer}>
-                <Text style={styles.fieldTitleText}>Price</Text>
-                <View style={styles.fieldValueText}>
-                  <Text style={styles.priceText}>
-                    {currencyFormatter.format(
-                      (!_.isEmpty(props.product)
-                        ? props?.product?.prices[0]?.unitAmountDecimal
-                        : 0) / 100,
-                      {
-                        code: _.toUpper(Default.currency),
-                      },
-                    )}
-                  </Text>
+          </TouchableOpacity>
+
+          <KeyboardAwareScrollView
+            style={GlobalStyles.flexStyle}
+            contentContainerStyle={styles.container}
+            keyboardShouldPersistTaps="handled">
+            <View style={styles.productImageContainer}>
+              <FastImage
+                style={styles.productImage}
+                resizeMode={'contain'}
+                source={require('../assets/products/product7.png')}
+              />
+            </View>
+            <View style={styles.productDetailContainer}>
+              <Text style={styles.productText}>{props?.product?.name}</Text>
+              <Text style={styles.descriptionText}>
+                {props?.product?.description}
+              </Text>
+              <View style={styles.detailsContainer}>
+                <View style={styles.priceContainer}>
+                  <Text style={styles.fieldTitleText}>Price</Text>
+                  <View style={styles.fieldValueText}>
+                    <Text style={styles.priceText}>
+                      {currencyFormatter.format(
+                        (!_.isEmpty(props.product)
+                          ? props?.product?.prices[0]?.unitAmountDecimal
+                          : 0) / 100,
+                        {
+                          code: _.toUpper(Default.currency),
+                        },
+                      )}
+                    </Text>
+                  </View>
                 </View>
-              </View>
-              <View style={styles.priceContainer}>
-                <Text style={styles.fieldTitleText}>Quantity</Text>
-                <View style={styles.fieldValueText}>
-                  <QuantityComponent
-                    showDelete={true}
-                    item={data}
-                    deleteProduct={(id) => removeProduct(id)}
-                    getQuantity={(data) => updateQty(data)}
-                  />
+                <View style={styles.priceContainer}>
+                  <Text style={styles.fieldTitleText}>Quantity</Text>
+                  <View style={styles.fieldValueText}>
+                    <QuantityComponent
+                      showDelete={true}
+                      item={data}
+                      deleteProduct={(id) => removeProduct(id)}
+                      getQuantity={(data) => updateQty(data)}
+                    />
+                  </View>
                 </View>
               </View>
             </View>
+          </KeyboardAwareScrollView>
+          <View style={styles.totalContainer}>
+            <View style={GlobalStyles.flexStyle}>
+              <Text style={styles.totalText}>
+                {currencyFormatter.format(
+                  (qty *
+                    (!_.isEmpty(props.product)
+                      ? props?.product?.prices[0]?.unitAmountDecimal
+                      : 0)) /
+                    100,
+                  {
+                    code: _.toUpper(Default.currency),
+                  },
+                )}
+              </Text>
+            </View>
+            <TouchableOpacity
+              style={[GlobalStyles.buttonContainer, styles.totalBtn]}
+              onPress={() => onSubmit()}>
+              <Text style={GlobalStyles.buttonText}>
+                {isCartProduct ? 'Update' : 'Add'}
+              </Text>
+            </TouchableOpacity>
           </View>
-        </KeyboardAwareScrollView>
-        <View style={styles.totalContainer}>
-          <View style={GlobalStyles.flexStyle}>
-            <Text style={styles.totalText}>
-              {currencyFormatter.format(
-                (qty *
-                  (!_.isEmpty(props.product)
-                    ? props?.product?.prices[0]?.unitAmountDecimal
-                    : 0)) /
-                  100,
-                {
-                  code: _.toUpper(Default.currency),
-                },
-              )}
-            </Text>
-          </View>
-          <TouchableOpacity
-            style={[GlobalStyles.buttonContainer, styles.totalBtn]}
-            onPress={() => onSubmit()}>
-            <Text style={GlobalStyles.buttonText}>
-              {isCartProduct ? 'Update' : 'Add'}
-            </Text>
-          </TouchableOpacity>
         </View>
-      </View>
+      </SafeAreaView>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
+  mainContainer: {
+    position: 'relative',
+    flex: 1,
+  },
   container: {
     flexGrow: 1,
     backgroundColor: Colors.bgColor,

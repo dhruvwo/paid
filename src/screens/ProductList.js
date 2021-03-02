@@ -1,11 +1,10 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
-  TextInput,
   RefreshControl,
   FlatList,
   ActivityIndicator,
@@ -16,49 +15,59 @@ import Colors from '../constants/Colors';
 import currencyFormatter from 'currency-formatter';
 import Default from '../constants/Default';
 import Header from '../components/Header';
-import CustomIconsComponent from '../components/CustomIcons';
 import FastImage from 'react-native-fast-image';
 import ProductDetailModal from '../components/ProductDetail';
 import {productAction} from '../store/actions';
 import * as _ from 'lodash';
+import SearchComponent from '../components/SearchComponent';
 
 export default function ProductList(props) {
   const dispatch = useDispatch();
-  const productState = useSelector(({auth, product}) => {
-    return {
-      auth,
-      product,
-    };
-  });
+  const reducState = useSelector(({auth, product}) => ({
+    auth,
+    product,
+  }));
   const [refresh, setRefresh] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [showProductDetailModal, setShowProductDetailModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [isLoadMoreLoader, setIsLoadMoreLoader] = useState(false);
   const [start, setStart] = useState(0);
+  const [isSearchLoading, setIsSearchLoading] = useState(false);
   const [
     onEndReachedCalledDuringMomentum,
     setOnEndReachedCalledDuringMomentum,
   ] = useState(false);
 
   const accountId =
-    productState?.auth?.userSetup?.payments?.stripeDetails?.accountId;
+    reducState?.auth?.userSetup?.payments?.stripeDetails?.accountId;
 
   useEffect(() => {
     getData();
   }, []);
 
+  const delayedQuery = useCallback(
+    _.debounce(() => getData(), 1000),
+    [searchText],
+  );
+
   useEffect(() => {
-    if (searchText) {
-      getData();
+    if (!isLoading) {
+      setIsSearchLoading(true);
+      delayedQuery();
     }
-  }, [searchText]);
+    // Cancel the debounce on useEffect cleanup.
+    return delayedQuery.cancel;
+  }, [searchText, delayedQuery]);
 
   const getData = async () => {
     setIsLoading(true);
-    await dispatch(productAction.getProducts(accountId, searchText, 0));
+    await dispatch(
+      productAction.getProducts({start: 0, accountId, searchText}),
+    );
     setIsLoading(false);
+    setIsSearchLoading(false);
   };
 
   const onRefresh = async () => {
@@ -72,7 +81,7 @@ export default function ProductList(props) {
     let startIndex = _.cloneDeep(start);
     if (
       !onEndReachedCalledDuringMomentum &&
-      startIndex + Default.perPageLimit < productState.product.totalProducts
+      startIndex + Default.perPageLimit < reducState.product.totalProducts
     ) {
       setIsLoadMoreLoader(true);
       setStart(startIndex + Default.perPageLimit);
@@ -122,11 +131,11 @@ export default function ProductList(props) {
 
   const renderEmptyComponent = () => {
     return (
-      <View style={styles.emptyContainer}>
+      <View style={GlobalStyles.emptyContainer}>
         {isLoading ? (
           <ActivityIndicator size="small" color={Colors.primary} />
         ) : (
-          <Text style={styles.footerText}>No products</Text>
+          <Text style={GlobalStyles.footerText}>No product found.</Text>
         )}
       </View>
     );
@@ -134,14 +143,15 @@ export default function ProductList(props) {
 
   const renderFooterComponent = () => {
     return (
-      !isLoading && (
-        <View style={styles.emptyContainer}>
+      !isLoading &&
+      !!reducState.product.products.length && (
+        <View style={GlobalStyles.emptyContainer}>
           {isLoadMoreLoader ? (
             <ActivityIndicator size="small" color={Colors.primary} />
           ) : (
             start + Default.perPageLimit <=
-              productState.product.totalProducts && (
-              <Text style={styles.footerText}>No more products</Text>
+              reducState.product.totalProducts && (
+              <Text style={GlobalStyles.footerText}>No more products.</Text>
             )
           )}
         </View>
@@ -155,31 +165,24 @@ export default function ProductList(props) {
         navigation={props.navigation}
         title={'Products'}
         showMenu={true}
-        showCart={'Product'}
+        showCheckout={true}
       />
       <View style={styles.container}>
         <View style={styles.searchContainer}>
-          <CustomIconsComponent
-            style={styles.searchIcon}
-            type={'AntDesign'}
-            color={Colors.primary}
-            name={'search1'}
-          />
-          <TextInput
-            style={styles.searchInput}
-            underlineColorAndroid="transparent"
-            placeholder="Search"
+          <SearchComponent
+            isSearchLoading={!isLoading && isSearchLoading}
             value={searchText}
             onChangeText={(txt) => setSearchText(txt)}
           />
         </View>
         <FlatList
           keyboardShouldPersistTaps={'handled'}
-          data={productState.product.products}
+          data={reducState.product.products}
           refreshControl={
             <RefreshControl
               refreshing={refresh}
               onRefresh={onRefresh}
+              tintColor={Colors.primary}
               colors={[Colors.primary]}
             />
           }
@@ -187,14 +190,13 @@ export default function ProductList(props) {
           onMomentumScrollBegin={() =>
             setOnEndReachedCalledDuringMomentum(false)
           }
-          renderItem={({item, index}) => renderItem(item, index)}
           onEndReached={handleLoadMore}
-          ListFooterComponent={renderFooterComponent}
           keyExtractor={(item) => item.id}
+          ListFooterComponent={renderFooterComponent}
+          renderItem={({item, index}) => renderItem(item, index)}
           ListEmptyComponent={renderEmptyComponent}
         />
       </View>
-
       <ProductDetailModal
         visible={showProductDetailModal}
         closeModal={() => {
@@ -267,13 +269,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
 
     fontWeight: '600',
-  },
-  emptyContainer: {
-    paddingVertical: 30,
-  },
-  footerText: {
-    fontSize: 16,
-    paddingVertical: 10,
-    textAlign: 'center',
   },
 });

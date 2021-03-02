@@ -15,7 +15,6 @@ import GlobalStyles from '../constants/GlobalStyles';
 import SvgImageViewer from '../components/SvgImageViewer';
 import LocalIcons from '../constants/LocalIcons';
 import CustomIconsComponent from '../components/CustomIcons';
-import LinearGradient from 'react-native-linear-gradient';
 import {authAction} from '../store/actions/auth';
 
 export default function Login(props) {
@@ -24,10 +23,10 @@ export default function Login(props) {
   const [password, setPassword] = useState(''); //Paid123!
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoginLoader, setIsLoginLoader] = useState(false);
+  const [secure, setSecure] = useState(true);
 
-  console.log('login called');
   const notInplement = () => {
-    return Alert.alert(``, `Not Implemented Yet!`, [
+    return Alert.alert(``, `Coming soon.`, [
       {
         text: 'Close',
         style: 'cancel',
@@ -39,7 +38,6 @@ export default function Login(props) {
     setIsLoginLoader(true);
     await dispatch(authAction.getServiceKey());
     const loginData = await dispatch(authAction.login(email, password));
-    // console.log('Login data', loginData);
     if (loginData?.status === 'success') {
       await dispatch(authAction.getUserSetup());
       setIsLoginLoader(false);
@@ -105,13 +103,39 @@ export default function Login(props) {
               size={27}
             />
             <TextInput
-              style={styles.inputLabel}
+              style={[styles.inputLabel, styles.passwordText]}
               underlineColorAndroid="transparent"
               placeholder="Password*"
               value={password}
-              secureTextEntry={true}
+              onSubmitEditing={() => onSubmit()}
+              secureTextEntry={secure}
               onChangeText={(password) => setPassword(password)}
             />
+            {password ? (
+              <TouchableOpacity
+                style={{justifyContent: 'center'}}
+                onPress={() => setSecure(!secure)}>
+                {secure ? (
+                  <CustomIconsComponent
+                    style={styles.passwordIcon}
+                    type={'Ionicons'}
+                    color={Colors.grey}
+                    name={'ios-eye-off-outline'}
+                    size={20}
+                  />
+                ) : (
+                  <CustomIconsComponent
+                    style={styles.passwordIcon}
+                    type={'Ionicons'}
+                    color={Colors.grey}
+                    name={'ios-eye-outline'}
+                    size={20}
+                  />
+                )}
+              </TouchableOpacity>
+            ) : (
+              <></>
+            )}
           </View>
           <View style={styles.errorContainer}>
             {errorMessage ? (
@@ -124,23 +148,21 @@ export default function Login(props) {
             style={[
               GlobalStyles.secondaryButtonContainer,
               styles.buttonContainer,
-              !(email && password) ? {opacity: 0.6} : '',
+              !(email && password) ? GlobalStyles.buttonDisabledContainer : '',
             ]}
-            disabled={!(email && password)}
+            disabled={!(email && password) || isLoginLoader}
             onPress={() => onSubmit()}>
             {isLoginLoader ? (
               <ActivityIndicator
                 color={Colors.white}
-                size={25}
+                size={20}
                 style={styles.loaderIcon}
               />
             ) : (
-              <View>
-                <Text
-                  style={[GlobalStyles.secondaryButtonText, styles.loginText]}>
-                  {'Login'}
-                </Text>
-              </View>
+              <Text
+                style={[GlobalStyles.secondaryButtonText, styles.loginText]}>
+                Login
+              </Text>
             )}
           </TouchableOpacity>
         </View>
@@ -180,15 +202,15 @@ export default function Login(props) {
         <View style={styles.forgotPasswordContainer}>
           <TouchableOpacity onPress={() => notInplement()}>
             <View style={styles.loginContainer}>
-              <Text style={styles.touchableText}>{'Forgot Password ?'}</Text>
+              <Text style={styles.touchableText}>Forgot Password?</Text>
             </View>
           </TouchableOpacity>
           <View style={styles.signUpContainer}>
-            <Text style={styles.containerText}>Don't have an account ?</Text>
+            <Text style={styles.containerText}>Don't have an account?</Text>
             <TouchableOpacity
               style={styles.signUpText}
               onPress={() => notInplement()}>
-              <Text style={GlobalStyles.buttonText}>{'Sign up'}</Text>
+              <Text style={GlobalStyles.buttonText}>Sign up</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -214,7 +236,11 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.bgColor,
     flex: 1,
   },
-  headerContainer: {flex: 1, flexDirection: 'row', width: '30%'},
+  headerContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    width: '30%',
+  },
   headerColorContainer: {
     height: '100%',
     width: '55%',
@@ -282,21 +308,24 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     marginHorizontal: 10,
     borderColor: '#E4E1E1',
+    alignItems: 'center',
     // backgroundColor: 'blue',
   },
   inputIcon: {
-    height: 50,
     paddingHorizontal: 10,
-    paddingTop: 18,
+  },
+  passwordIcon: {
+    paddingHorizontal: 10,
   },
   inputLabel: {
     minHeight: 50,
-    height: 50,
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '700',
     paddingBottom: 0,
     flexGrow: 1,
     flexShrink: 1,
+    paddingTop: 0,
+    paddingBottom: 0,
   },
   loginContainer: {
     textAlign: 'center',
@@ -330,6 +359,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     width: '90%',
     borderWidth: 0,
+    height: 42,
   },
   signUpContainer: {
     flexDirection: 'row',

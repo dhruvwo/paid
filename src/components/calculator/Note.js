@@ -1,10 +1,11 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   TouchableOpacity,
   Text,
   StyleSheet,
   TextInput,
   Modal,
+  SafeAreaView,
 } from 'react-native';
 import Colors from '../../constants/Colors';
 import GlobalStyles from '../../constants/GlobalStyles';
@@ -13,7 +14,11 @@ import Header from '../Header';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 
 export default function Note(props) {
-  const [note, setNote] = useState(props.note);
+  const [note, setNote] = useState('');
+
+  useEffect(() => {
+    setNote(props.note);
+  }, [props]);
 
   return (
     <Modal
@@ -21,30 +26,39 @@ export default function Note(props) {
       visible={props.visible}
       onRequestClose={() => {
         props.closeModal(note);
+        setNote('');
       }}>
-      <Header
-        navigation={props.navigation}
-        title="Note"
-        close={() => props.closeModal(note)}
-      />
-      <KeyboardAwareScrollView
-        style={GlobalStyles.flexStyle}
-        contentContainerStyle={styles.container}
-        keyboardShouldPersistTaps="handled">
-        <TextInput
-          style={styles.noteContainer}
-          multiline={true}
-          placeholder="Note"
-          value={note}
-          onChangeText={(note) => setNote(note)}
+      <SafeAreaView style={GlobalStyles.flexStyle}>
+        <Header
+          navigation={props.navigation}
+          title="Note"
+          close={() => {
+            props.closeModal(note);
+            setNote('');
+          }}
         />
-        <TouchableOpacity
-          disabled={!note}
-          style={[GlobalStyles.secondaryButtonContainer, styles.btnStyle]}
-          onPress={() => props.closeModal(note)}>
-          <Text style={GlobalStyles.secondaryButtonText}>Save</Text>
-        </TouchableOpacity>
-      </KeyboardAwareScrollView>
+        <KeyboardAwareScrollView
+          style={GlobalStyles.flexStyle}
+          contentContainerStyle={styles.container}
+          keyboardShouldPersistTaps="handled">
+          <TextInput
+            style={styles.noteContainer}
+            multiline={true}
+            placeholder="Note"
+            textAlignVertical={'center'}
+            value={note}
+            onChangeText={(note) => setNote(note)}
+          />
+          <TouchableOpacity
+            style={[GlobalStyles.secondaryButtonContainer, styles.btnStyle]}
+            onPress={() => {
+              props.closeModal(note);
+              setNote('');
+            }}>
+            <Text style={GlobalStyles.secondaryButtonText}>Save</Text>
+          </TouchableOpacity>
+        </KeyboardAwareScrollView>
+      </SafeAreaView>
     </Modal>
   );
 }
@@ -63,6 +77,7 @@ const styles = StyleSheet.create({
   noteContainer: {
     borderRadius: 10,
     margin: 10,
+    padding: 20,
     minHeight: 200,
     backgroundColor: Colors.white,
     elevation: 2,

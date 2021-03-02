@@ -56,6 +56,14 @@ const GlobalStyles = StyleSheet.create({
   row: {
     flexDirection: 'row',
   },
+  footerText: {
+    fontSize: 14,
+    textAlign: 'center',
+  },
+  emptyContainer: {
+    padding: 16,
+    alignItems: 'center',
+  },
 });
 
 export default GlobalStyles;

@@ -1,44 +1,28 @@
 import {CartState} from '../../constants/GlobalState';
 
-const addProduct = (data) => ({
-  type: CartState.ADD_PRODUCT,
+const addItem = (data) => ({
+  type: CartState.ADD_ITEM,
   data,
 });
 
-const updateCart = (data) => ({
-  type: CartState.UPDATE_CART,
+const updateItem = (data) => ({
+  type: CartState.UPDATE_ITEM,
   data,
 });
 
-const removeProduct = (data) => ({
-  type: CartState.REMOVE_PRODUCT,
+const removeItem = (data) => ({
+  type: CartState.REMOVE_ITEM,
   data,
 });
 
-const clearCart = () => ({
-  type: CartState.CLEAR_CART,
-});
-
-const addQuickPay = (data) => ({
-  type: CartState.ADD_QUICKPAY,
+const clearItems = (data) => ({
+  type: CartState.CLEAR_ITEMS,
   data,
-});
-
-const removeQuickPay = (data) => ({
-  type: CartState.REMOVE_QUICKPAY,
-  data,
-});
-
-const clearQuickPay = () => ({
-  type: CartState.CLEAR_QUICKPAY,
 });
 
 export const cartAction = {
-  addProduct,
-  updateCart,
-  removeProduct,
-  clearCart,
-  addQuickPay,
-  removeQuickPay,
-  clearQuickPay,
+  addItem,
+  updateItem,
+  removeItem,
+  clearItems,
 };

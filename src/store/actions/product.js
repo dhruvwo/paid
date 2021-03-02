@@ -11,13 +11,18 @@ const appendProduct = (data) => ({
   data,
 });
 
-const getProducts = (accountId, filter_name, start) => {
+const clearProducts = (data) => ({
+  type: ProductState.CLEAR_PRODUCTS,
+  data,
+});
+
+const getProducts = (filters) => {
   return (dispatch) => {
     return product
-      .products(accountId, filter_name, start)
+      .products(filters)
       .then((response) => {
         if (response.status === 'success') {
-          if (start === 0) {
+          if (filters.start === 0) {
             dispatch(setProduct(response));
           } else {
             dispatch(appendProduct(response));
@@ -34,4 +39,5 @@ const getProducts = (accountId, filter_name, start) => {
 
 export const productAction = {
   getProducts,
+  clearProducts,
 };

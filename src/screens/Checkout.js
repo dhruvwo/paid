@@ -14,7 +14,7 @@ import Colors from '../constants/Colors';
 import {useDispatch, useSelector} from 'react-redux';
 import {cartAction, invoiceAction} from '../store/actions';
 import Header from '../components/Header';
-import Customer from '../components/customer/Customer';
+import CustomersList from '../components/customer/CustomersList';
 import * as _ from 'lodash';
 import currencyFormatter from 'currency-formatter';
 import CustomIconsComponent from '../components/CustomIcons';
@@ -28,27 +28,20 @@ import {KeyboardAwareFlatList} from 'react-native-keyboard-aware-scroll-view';
 
 export default function Checkout(props) {
   const dispatch = useDispatch();
-  const cartState = useSelector(({auth, product, customer, cart}) => {
-    return {
-      auth,
-      product,
-      customer,
-      cart,
-    };
-  });
+  const reducState = useSelector(({auth, cart}) => ({
+    auth,
+    cart,
+  }));
 
-  const stripeDetails = cartState?.auth?.userSetup?.payments?.stripeDetails;
-  const data =
-    props.route.params === 'Product'
-      ? cartState.cart.products
-      : cartState.cart.quickPay;
+  const stripeDetails = reducState?.auth?.userSetup?.payments?.stripeDetails;
+  const data = reducState.cart.items;
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingPay, setIsLoadingPay] = useState(false);
   const [customer, setCustomer] = useState({});
   const [showCustomerModal, setShowCustomerModal] = useState(false);
   const [showProductDetailModal, setShowProductDetailModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState('');
-  const [error, setError] = useState('');
+  const [error, setError] = useState('Please select customer');
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
   useEffect(() => {
@@ -88,10 +81,10 @@ export default function Checkout(props) {
     const invoice = await dispatch(invoiceAction.sendInvoice(data));
     if (invoice.status === 'success') {
       setIsLoading(false);
-      dispatch(cartAction.clearCart());
+      dispatch(cartAction.clearItems());
       props.navigation.navigate('Products');
       ToastService({
-        message: 'Invoice send successfully !',
+        message: 'Invoice sent successfully.',
       });
     } else {
       ToastService({
@@ -116,14 +109,12 @@ export default function Checkout(props) {
     const pay = await dispatch(invoiceAction.sendQuickPayInvoice(data));
     if (pay.status === 'success') {
       setIsLoadingPay(false);
-      props.route.params === 'Product'
-        ? dispatch(cartAction.clearCart())
-        : dispatch(cartAction.clearQuickPay());
+      dispatch(cartAction.clearItems());
       props.navigation.navigate(
         props.route.params === 'Product' ? 'Products' : 'QuickPay',
       );
       ToastService({
-        message: 'Paid successfully !',
+        message: 'Paid successfully.',
       });
     } else {
       setError(pay.data.message);
@@ -162,61 +153,61 @@ export default function Checkout(props) {
     return add;
   };
 
-  const updateCart = async (item) => {
-    await dispatch(cartAction.updateCart(item));
+  const updateCart = (item) => {
+    dispatch(cartAction.updateItem(item));
   };
 
   const deleteProduct = (id) => {
-    Alert.alert(
-      '',
-      `${
-        'Do you really want to remove this ' +
-        (props.route.params === 'Product' ? 'product' : 'payment') +
-        ' from cart?'
-      }`,
-      [
-        {
-          text: 'yes',
-          onPress: () => {
-            props.route.params === 'Product'
-              ? dispatch(cartAction.removeProduct(id))
-              : dispatch(cartAction.removeQuickPay(id));
-          },
+    Alert.alert('', `Do you want to remove this item from cart?`, [
+      {
+        text: 'Remove',
+        onPress: () => {
+          dispatch(cartAction.removeItem(id));
         },
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-      ],
-    );
+      },
+      {
+        text: 'Cancel',
+        style: 'cancel',
+      },
+    ]);
   };
 
   const renderProductItem = (item, index) => {
     return (
       <TouchableOpacity
+        disabled={!item.priceId}
         style={styles.productContainer}
         key={item.id}
         onPress={() => {
           setShowProductDetailModal(true);
           setSelectedProduct(item.product);
         }}>
-        <FastImage
-          style={styles.productImage}
-          resizeMode={'cover'}
-          source={require('../assets/products/product7.png')}
-        />
-        <View style={styles.productDetailContainer}>
-          <Text style={styles.productName}>{item.product.name}</Text>
+        {item.priceId && (
+          <FastImage
+            style={styles.productImage}
+            resizeMode={'cover'}
+            source={require('../assets/products/product7.png')}
+          />
+        )}
+        <View style={[styles.productDetailContainer]}>
+          {item.priceId && (
+            <Text style={styles.productName}>{item.product.name}</Text>
+          )}
           <Text style={styles.productPrice}>
             {currencyFormatter.format((item.price / 100) * item.qty, {
               code: _.toUpper(Default.currency),
             })}
           </Text>
-          <QuantityComponent
-            item={item}
-            deleteProduct={(id) => deleteProduct(id)}
-            getQuantity={(data) => updateCart(data)}
-          />
+          {item.priceId && (
+            <QuantityComponent
+              item={item}
+              deleteProduct={(id) => deleteProduct(id)}
+              getQuantity={(data) => updateCart(data)}
+            />
+          )}
+          {item.product.note ? (
+            <Text style={styles.productPrice}>{item.product.note}</Text>
+          ) : null}
         </View>
         <TouchableOpacity onPress={() => deleteProduct(item.id)}>
           <CustomIconsComponent
@@ -229,38 +220,15 @@ export default function Checkout(props) {
     );
   };
 
-  const renderQuickPayItem = (item, index) => {
-    return (
-      <View style={styles.productContainer} key={item.id}>
-        <View style={styles.productDetailContainer}>
-          <Text style={styles.productName}>
-            {currencyFormatter.format((item.price / 100) * item.qty, {
-              code: _.toUpper(Default.currency),
-            })}
-          </Text>
-          {item.product.note ? (
-            <Text style={styles.productPrice}>{item.product.note}</Text>
-          ) : (
-            <></>
-          )}
-        </View>
-        <TouchableOpacity onPress={() => deleteProduct(item.id)}>
-          <CustomIconsComponent
-            name={'delete-outline'}
-            type={'MaterialCommunityIcons'}
-            color={Colors.red}
-          />
-        </TouchableOpacity>
-      </View>
-    );
-  };
-
   const renderEmptyComponent = () => {
     return (
       <View style={styles.emptyContainer}>
-        <Text style={styles.footerText}>Cart is empty.</Text>
+        <Text style={GlobalStyles.footerText}>Cart is empty.</Text>
         <TouchableOpacity
-          style={GlobalStyles.secondaryButtonContainer}
+          style={[
+            GlobalStyles.secondaryButtonContainer,
+            styles.goToButtonContainer,
+          ]}
           onPress={() => {
             const navPage =
               props.route.params === 'Product' ? 'Products' : 'QuickPay';
@@ -278,15 +246,14 @@ export default function Checkout(props) {
 
   const renderHeader = () => {
     return (
-      <TouchableOpacity
-        style={styles.customerContainer}
-        onPress={() => setShowCustomerModal(true)}>
+      <TouchableOpacity onPress={() => setShowCustomerModal(true)}>
         {_.isEmpty(customer) ? (
-          <Text style={styles.selectCustomerText(!_.isEmpty(customer))}>
-            Select customer
-          </Text>
+          <View style={styles.customerSelectContainer}>
+            <Text style={styles.customerText}>Select Customer</Text>
+            <Text style={[styles.customerText, {color: Colors.red}]}>*</Text>
+          </View>
         ) : (
-          <>
+          <View style={styles.customerContainer}>
             <View>
               <Text style={styles.selectCustomerText(!_.isEmpty(customer))}>
                 {`${
@@ -298,15 +265,29 @@ export default function Checkout(props) {
                     : '')
                 }`}
               </Text>
-              <Text style={styles.selectCustomerText(!_.isEmpty(customer))}>
+              <Text
+                style={[
+                  styles.selectCustomerText(!_.isEmpty(customer)),
+                  styles.emailText,
+                ]}>
                 {customer?.email}
               </Text>
             </View>
             <Text style={styles.changeText}>CHANGE</Text>
-          </>
+          </View>
         )}
       </TouchableOpacity>
     );
+  };
+
+  const isOnlyProduct = () => {
+    let isProduct = true;
+    data.forEach((o) => {
+      if (!o.priceId && isProduct) {
+        isProduct = false;
+      }
+    });
+    return !isProduct;
   };
 
   const renderFooter = () => {
@@ -348,7 +329,7 @@ export default function Checkout(props) {
         <View style={styles.buttonContainer}>
           {!!error && <Text style={styles.errorMessage}>{error}</Text>}
           <View style={GlobalStyles.row}>
-            {props.route.params === 'Product' && (
+            {!isOnlyProduct() && (
               <TouchableOpacity
                 style={[
                   GlobalStyles.secondaryButtonContainer,
@@ -358,7 +339,7 @@ export default function Checkout(props) {
                   styles.btnStyle,
                   styles.invoiceButtonStyle,
                 ]}
-                disabled={!!_.isEmpty(customer)}
+                disabled={isLoadingPay || isLoading || _.isEmpty(customer)}
                 onPress={() => !_.isEmpty(customer) && sendInvoice()}>
                 {isLoading ? (
                   <ActivityIndicator
@@ -385,12 +366,13 @@ export default function Checkout(props) {
                   : GlobalStyles.buttonDisabledContainer,
                 styles.btnStyle,
               ]}
-              disabled={!(!_.isEmpty(customer) && customer.paymentMethod)}
-              onPress={() =>
-                !_.isEmpty(customer) &&
-                customer.paymentMethod &&
-                sendQuickPayInvoice()
-              }>
+              disabled={
+                isLoadingPay ||
+                isLoading ||
+                _.isEmpty(customer) ||
+                !(customer && customer.paymentMethod)
+              }
+              onPress={() => sendQuickPayInvoice()}>
               {isLoadingPay ? (
                 <ActivityIndicator
                   color={Colors.white}
@@ -414,6 +396,7 @@ export default function Checkout(props) {
       </>
     );
   };
+
   return (
     <SafeAreaView style={GlobalStyles.flexStyle}>
       <Header
@@ -423,7 +406,7 @@ export default function Checkout(props) {
             props.route.params === 'Product' ? 'Products' : 'QuickPay',
           )
         }
-        title={props.route.params === 'Product' ? 'Checkout' : 'Quick Charge'}
+        title={'Checkout'}
       />
       {data.length ? renderHeader() : <></>}
       <KeyboardAwareFlatList
@@ -433,16 +416,12 @@ export default function Checkout(props) {
         data={data}
         // ListHeaderComponent={data.length && renderHeader}
         // ListFooterComponent={data.length && renderFooter}
-        renderItem={({item, index}) =>
-          props.route.params === 'Product'
-            ? renderProductItem(item, index)
-            : renderQuickPayItem(item, index)
-        }
+        renderItem={({item, index}) => renderProductItem(item, index)}
         keyExtractor={(item) => item.id}
         ListEmptyComponent={renderEmptyComponent}
       />
       {data.length ? renderFooter() : <></>}
-      <Customer
+      <CustomersList
         visible={showCustomerModal}
         closeModal={(customer) => {
           getCustomer(customer);
@@ -494,6 +473,32 @@ const styles = StyleSheet.create({
     marginRight: 20,
     color: isCustomerSelected ? Colors.black : Colors.primary,
   }),
+  emailText: {
+    fontWeight: 'normal',
+  },
+  customerSelectContainer: {
+    backgroundColor: Colors.white,
+    padding: 10,
+    shadowColor: '#303838',
+    shadowOffset: {width: 0, height: 1},
+    shadowRadius: 2,
+    shadowOpacity: 0.1,
+    elevation: 2,
+    shadowOffset: {
+      width: 2,
+      height: 2,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 2.62,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  customerText: {
+    fontWeight: 'bold',
+    fontSize: 18,
+    color: Colors.primary,
+  },
   changeText: {
     color: Colors.primary,
     fontWeight: 'bold',
@@ -502,12 +507,14 @@ const styles = StyleSheet.create({
   productImage: {
     height: 90,
     width: 68,
+    marginRight: 16,
   },
   productContainer: {
     margin: 2,
     flexDirection: 'row',
     backgroundColor: Colors.white,
-    padding: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
     justifyContent: 'center',
     shadowColor: '#303838',
     shadowOffset: {width: 0, height: 1},
@@ -524,7 +531,6 @@ const styles = StyleSheet.create({
   productDetailContainer: {
     flexGrow: 1,
     flexShrink: 1,
-    paddingHorizontal: 20,
     justifyContent: 'center',
   },
   productName: {
@@ -538,6 +544,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     paddingHorizontal: 10,
     paddingVertical: 3,
+    paddingTop: 10,
     // marginTop: 3,
   },
   priceDetailContainer: {
@@ -568,6 +575,7 @@ const styles = StyleSheet.create({
   btnStyle: {
     flex: 1,
     borderRadius: 0,
+    height: 42,
   },
   invoiceButtonStyle: {
     backgroundColor: Colors.secondary,
@@ -581,9 +589,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 20,
   },
-  footerText: {
-    fontSize: 16,
-    paddingVertical: 10,
-    textAlign: 'center',
+  goToButtonContainer: {
+    marginTop: 10,
   },
 });

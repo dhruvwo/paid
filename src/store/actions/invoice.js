@@ -11,29 +11,18 @@ const appendInvoice = (data) => ({
   data,
 });
 
-const getInvoices = (
-  accountId,
-  filter_total,
-  startAfter,
-  filter_customer,
-  created,
-  status,
-  dueDate,
-) => {
+const clearInvoices = (data) => ({
+  type: InvoiceState.CLEAR_INVOICE,
+  data,
+});
+
+const getInvoices = (filters) => {
   return (dispatch) => {
     return invoice
-      .invoices(
-        accountId,
-        filter_total,
-        startAfter,
-        filter_customer,
-        created,
-        status,
-        dueDate,
-      )
+      .invoices(filters)
       .then((response) => {
         if (response.status === 'success') {
-          if (startAfter) {
+          if (filters.startAfter) {
             dispatch(appendInvoice(response));
           } else {
             dispatch(setInvoice(response));
@@ -80,4 +69,5 @@ export const invoiceAction = {
   getInvoices,
   sendInvoice,
   sendQuickPayInvoice,
+  clearInvoices,
 };

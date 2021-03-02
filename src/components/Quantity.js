@@ -8,14 +8,10 @@ import * as _ from 'lodash';
 import ToastService from '../services/Toast';
 
 export default function QuantityComponent(props) {
-  const cartState = useSelector(({cart}) => {
-    return {
-      cart,
-    };
-  });
+  const cartState = useSelector(({cart}) => cart);
   const [qty, setQty] = useState(1);
   const delayedQuery = useCallback(
-    _.debounce(() => updateInputQty(), 1500),
+    _.debounce(() => updateInputQty(), 300),
     [qty],
   );
 
@@ -30,7 +26,7 @@ export default function QuantityComponent(props) {
   }, [props.item]);
 
   const isProductInCart = () => {
-    const index = _.findIndex(cartState.cart.products, {id: props.item.id});
+    const index = _.findIndex(cartState.items, {id: props.item.id});
     if (index > -1) {
       return true;
     } else {
@@ -44,7 +40,6 @@ export default function QuantityComponent(props) {
     if (parseInt(qty) > 0 && parseInt(qty) <= 2001) {
       props.item.qty = parseInt(qty);
     } else if (qty === '') {
-      props.item.qty = 1;
       setQty(1);
     } else {
       setQty(1);
@@ -57,11 +52,9 @@ export default function QuantityComponent(props) {
 
   const updateOperatorQty = (val) => {
     if (val === '+' && qty < 2001) {
-      props.item.qty = qty + 1;
-      setQty(qty + 1);
+      setQty(parseInt(qty) + 1);
     } else if (val === '-' && qty > 1) {
-      props.item.qty = qty - 1;
-      setQty(qty - 1);
+      setQty(parseInt(qty) - 1);
     } else {
       ToastService({
         message: 'Please give vaild quantity.',
@@ -88,7 +81,7 @@ export default function QuantityComponent(props) {
         style={[styles.qtyInput]}
         keyboardType={'numeric'}
         value={qty.toString()}
-        onChangeText={(val) => setQty(val)}
+        onChangeText={(val) => setQty(parseInt(val))}
       />
       <TouchableOpacity
         style={styles.qtyBtn('+')}
@@ -115,6 +108,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     alignItems: 'center',
     padding: 0,
+    paddingTop: 0,
+    paddingBottom: 0,
     width: 65,
     height: 33,
     backgroundColor: Colors.lightGrey,

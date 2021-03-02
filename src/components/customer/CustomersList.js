@@ -1,17 +1,16 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  TextInput,
   FlatList,
   ActivityIndicator,
   Modal,
   RefreshControl,
+  SafeAreaView,
 } from 'react-native';
 import Colors from '../../constants/Colors';
-import GlobalStyles from '../../constants/GlobalStyles';
 import CustomIconsComponent from '../CustomIcons';
 import {customerAction} from '../../store/actions';
 import {useSelector, useDispatch} from 'react-redux';
@@ -19,23 +18,24 @@ import Default from '../../constants/Default';
 import * as _ from 'lodash';
 import AddCustomer from './AddCustomer';
 import Header from '../Header';
+import GlobalStyles from '../../constants/GlobalStyles';
+import SearchComponent from '../SearchComponent';
 
-export default function Customer(props) {
+export default function CustomersList(props) {
   const dispatch = useDispatch();
-  const customerState = useSelector(({auth, customer}) => {
-    return {
-      auth,
-      customer,
-    };
-  });
+  const reducState = useSelector(({auth, customer}) => ({
+    auth,
+    customer,
+  }));
   const accountId =
-    customerState?.auth?.userSetup?.payments?.stripeDetails?.accountId;
+    reducState?.auth?.userSetup?.payments?.stripeDetails?.accountId;
 
   const [refresh, setRefresh] = useState(false);
   const [searchText, setSearchText] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [isLoadMoreLoader, setIsLoadMoreLoader] = useState(false);
   const [start, setStart] = useState(0);
+  const [isSearchLoading, setIsSearchLoading] = useState(false);
   const [
     onEndReachedCalledDuringMomentum,
     setOnEndReachedCalledDuringMomentum,
@@ -46,17 +46,25 @@ export default function Customer(props) {
     getCustomer();
   }, []);
 
+  const delayedQuery = useCallback(
+    _.debounce(async () => await getCustomer(), 1000),
+    [searchText],
+  );
+
   useEffect(() => {
-    if (searchText) {
+    if (!isLoading) {
+      setIsSearchLoading(true);
       setStart(0);
-      getCustomer();
+      delayedQuery();
     }
-  }, [searchText]);
+    // Cancel the debounce on useEffect cleanup.
+    return delayedQuery.cancel;
+  }, [searchText, delayedQuery]);
 
   const getCustomer = async () => {
-    setIsLoading(true);
-    await dispatch(customerAction.getCustomers(accountId, searchText, start));
+    await dispatch(customerAction.getCustomers({accountId, searchText, start}));
     setIsLoading(false);
+    setIsSearchLoading(false);
   };
 
   const onRefresh = async () => {
@@ -68,22 +76,22 @@ export default function Customer(props) {
 
   const handleLoadMore = async () => {
     let startIndex = _.cloneDeep(start);
-    if (!onEndReachedCalledDuringMomentum && customerState.customer.hasMore) {
+    if (!onEndReachedCalledDuringMomentum && reducState.customer.hasMore) {
       setIsLoadMoreLoader(true);
       setStart(startIndex + Default.perPageLimit);
       await dispatch(
-        customerAction.getCustomers(
+        customerAction.getCustomers({
           accountId,
           searchText,
-          startIndex + Default.perPageLimit,
-        ),
+          start: startIndex + Default.perPageLimit,
+        }),
       );
       setIsLoadMoreLoader(false);
       setOnEndReachedCalledDuringMomentum(true);
     }
   };
 
-  const renderItem = (item, index) => {
+  const renderItem = (item) => {
     return (
       <TouchableOpacity
         onPress={() => props.closeModal(item)}
@@ -142,11 +150,11 @@ export default function Customer(props) {
 
   const renderEmptyComponent = () => {
     return (
-      <View>
+      <View style={GlobalStyles.emptyContainer}>
         {isLoading ? (
           <ActivityIndicator size="small" color={Colors.primary} />
         ) : (
-          <Text style={styles.footerText}>No customer</Text>
+          <Text style={GlobalStyles.footerText}>No customer found.</Text>
         )}
       </View>
     );
@@ -154,13 +162,14 @@ export default function Customer(props) {
 
   const renderFooterComponent = () => {
     return (
-      !isLoading && (
-        <View>
+      !isLoading &&
+      !!reducState?.customer?.customers?.length && (
+        <View style={GlobalStyles.emptyContainer}>
           {isLoadMoreLoader ? (
             <ActivityIndicator size="small" color={Colors.primary} />
           ) : (
-            !customerState.customer.hasMore && (
-              <Text style={styles.footerText}>No more customer</Text>
+            !reducState.customer.hasMore && (
+              <Text style={GlobalStyles.footerText}>No more customers.</Text>
             )
           )}
         </View>
@@ -175,29 +184,21 @@ export default function Customer(props) {
       onRequestClose={() => {
         props.closeModal();
       }}>
-      <View style={styles.container}>
+      <SafeAreaView style={styles.container}>
         <Header
           navigation={props.navigation}
           title="Customers"
           close={() => props.closeModal()}
         />
         <View style={styles.searchContainer}>
-          <CustomIconsComponent
-            style={styles.searchIcon}
-            type={'AntDesign'}
-            color={Colors.primary}
-            name={'search1'}
-          />
-          <TextInput
-            style={styles.searchInput}
-            underlineColorAndroid="transparent"
-            placeholder="Search"
+          <SearchComponent
+            isSearchLoading={!isLoading && isSearchLoading}
             value={searchText}
             onChangeText={(txt) => setSearchText(txt)}
           />
           <TouchableOpacity onPress={() => setShowAddModal(true)}>
             <CustomIconsComponent
-              style={styles.searchIcon}
+              style={styles.addUserIcon}
               type={'Feather'}
               color={Colors.primary}
               name={'user-plus'}
@@ -207,25 +208,26 @@ export default function Customer(props) {
         <FlatList
           keyboardShouldPersistTaps={'handled'}
           contentContainerStyle={styles.customerMainContainer}
-          data={customerState.customer.customers}
+          data={reducState.customer.customers}
+          onEndReachedThreshold={0.5}
+          keyExtractor={(item) => item._id}
           refreshControl={
             <RefreshControl
               refreshing={refresh}
               onRefresh={onRefresh}
+              tintColor={Colors.primary}
               colors={[Colors.primary]}
             />
           }
-          onEndReachedThreshold={0.5}
           onMomentumScrollBegin={() =>
             setOnEndReachedCalledDuringMomentum(false)
           }
-          renderItem={({item, index}) => renderItem(item, index)}
           onEndReached={handleLoadMore}
+          renderItem={({item, index}) => renderItem(item, index)}
           ListFooterComponent={() => renderFooterComponent()}
-          keyExtractor={(item) => item.customerId}
           ListEmptyComponent={() => renderEmptyComponent()}
         />
-      </View>
+      </SafeAreaView>
       <AddCustomer
         visible={showAddModal}
         closeModal={() => setShowAddModal(false)}
@@ -237,7 +239,7 @@ export default function Customer(props) {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: Colors.bgColor,
-    flexGrow: 1,
+    flex: 1,
   },
   searchContainer: {
     flexDirection: 'row',
@@ -249,15 +251,10 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.15,
     shadowRadius: 2.62,
+    alignItems: 'center',
   },
-  searchIcon: {
+  addUserIcon: {
     padding: 12,
-  },
-  searchInput: {
-    flexGrow: 1,
-    flexShrink: 1,
-    fontSize: 16,
-    paddingHorizontal: 10,
   },
   customerMainContainer: {
     paddingBottom: 150,
@@ -288,10 +285,5 @@ const styles = StyleSheet.create({
   },
   cartText: {
     fontSize: 14,
-  },
-  footerText: {
-    fontSize: 14,
-    paddingVertical: 10,
-    textAlign: 'center',
   },
 });
