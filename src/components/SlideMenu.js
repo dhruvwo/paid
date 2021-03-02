@@ -20,11 +20,15 @@ import Colors from '../constants/Colors';
 import LocalIcons from '../constants/LocalIcons';
 import SvgImageViewer from '../components/SvgImageViewer';
 import {authAction} from '../store/actions/auth';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import GlobalStyles from '../constants/GlobalStyles';
+import {FileLogger} from 'react-native-file-logger';
+import moment from 'moment';
 
 export default function SideMenu(props) {
-  const [version, setVersion] = useState('');
+  const authState = useSelector(({auth}) => ({
+    auth,
+  }));
   const [logoutLoader, setLogoutLoader] = useState(false);
   const dispatch = useDispatch();
   const menuOptions = [
@@ -42,11 +46,7 @@ export default function SideMenu(props) {
     },
   ];
 
-  useEffect(() => {
-    setVersion(DeviceInfo.getVersion());
-  });
-
-  navigateToScreen = async (route) => {
+  const navigateToScreen = async (route) => {
     props.navigation.dispatch(DrawerActions.closeDrawer());
     if (route) {
       if (route === 'BottomTab') {
@@ -73,6 +73,18 @@ export default function SideMenu(props) {
     await dispatch(authAction.logout());
     setLogoutLoader(false);
     props.navigation.navigate('Login');
+  };
+
+  const sendLog = () => {
+    FileLogger.sendLogFilesByEmail(
+      (Option = {
+        to: 'vaishali.webosmotic@gmail.com',
+        subject: 'Log file of paid',
+        body: `Log of paid app at ${moment().format(
+          'YYYY-MM-DD HH:mm:ss',
+        )} by ${authState?.auth?.authenticationResponse?.email}.`,
+      }),
+    );
   };
 
   return (
@@ -104,6 +116,13 @@ export default function SideMenu(props) {
           );
         })}
       </ScrollView>
+      <View style={styles.bottomContainer}>
+        <TouchableOpacity
+          onPress={() => sendLog()}
+          style={styles.menuItemContainer}>
+          <Text style={styles.menuText}>Send log</Text>
+        </TouchableOpacity>
+      </View>
       <View style={styles.bottomContainer}>
         {logoutLoader ? (
           <ActivityIndicator
