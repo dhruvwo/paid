@@ -39,10 +39,7 @@ export default function QuantityComponent(props) {
   const updateInputQty = () => {
     if (parseInt(qty) > 0 && parseInt(qty) <= 2001) {
       props.item.qty = parseInt(qty);
-    } else if (qty === '') {
-      setQty(1);
     } else {
-      setQty(1);
       ToastService({
         message: 'Please give vaild quantity.',
       });
@@ -52,15 +49,21 @@ export default function QuantityComponent(props) {
 
   const updateOperatorQty = (val) => {
     if (val === '+' && qty < 2001) {
-      setQty(parseInt(qty) + 1);
-    } else if (val === '-' && qty > 1) {
-      setQty(parseInt(qty) - 1);
+      setQty(qty === '' ? 1 : parseInt(qty) + 1);
+    } else if (val === '-' && (qty > 1 || qty === '')) {
+      setQty(qty === '' ? 1 : parseInt(qty) - 1);
     } else {
       ToastService({
         message: 'Please give vaild quantity.',
       });
     }
     props.getQuantity(props.item);
+  };
+
+  const fnQtyBlur = () => {
+    if (qty === '') {
+      setQty(1);
+    }
   };
 
   return (
@@ -81,7 +84,14 @@ export default function QuantityComponent(props) {
         style={[styles.qtyInput]}
         keyboardType={'numeric'}
         value={qty.toString()}
-        onChangeText={(val) => setQty(parseInt(val))}
+        onChangeText={(val) => {
+          if (!isNaN(val)) {
+            setQty(val);
+          } else {
+            setQty('');
+          }
+        }}
+        onBlur={() => fnQtyBlur()}
       />
       <TouchableOpacity
         style={styles.qtyBtn('+')}

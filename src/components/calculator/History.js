@@ -132,17 +132,20 @@ export default function History(props) {
                           }) +
                           ` + ` +
                           currencyFormatter.format(
-                            (val.price / 100) *
-                              cartState?.auth?.tax?.percentage,
+                            ((val.price / 100) *
+                              cartState?.auth?.tax?.percentage) /
+                              100,
                             {
                               code: _.toUpper(Default.currency),
                             },
                           ) +
                           ` = ` +
                           currencyFormatter.format(
-                            val.price / 100 +
-                              (val.price / 100) *
-                                cartState?.auth?.tax?.percentage,
+                            cartState?.auth?.tax?.percentage
+                              ? (val.price / 100) *
+                                  ((100 + cartState?.auth?.tax?.percentage) /
+                                    100)
+                              : val.price / 100,
                             {
                               code: _.toUpper(Default.currency),
                             },

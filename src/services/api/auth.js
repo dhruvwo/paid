@@ -28,6 +28,7 @@ const getTax = async (accountId) => {
         perPage: Default.perPageLimit,
         filter: {
           filter_currency: Default.currency,
+          filter_status: true,
         },
       },
     })

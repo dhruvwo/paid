@@ -85,7 +85,12 @@ const getTax = (accountId) => {
     return auth
       .getTax(accountId)
       .then((response) => {
-        dispatch(setTax(response?.taxRateDetails?.data[0]));
+        if (
+          response.status === 'success' &&
+          response.taxRateDetails.data.length
+        ) {
+          dispatch(setTax(response?.taxRateDetails?.data[0]));
+        }
         return response?.taxRateDetails?.data[0];
       })
       .catch((err) => {

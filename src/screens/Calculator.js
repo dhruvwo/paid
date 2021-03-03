@@ -134,10 +134,15 @@ export default function CalculatorScreen(props) {
           </View>
           <View style={[styles.amountContainer]}>
             <Text style={styles.amountHeaderText}>
-              Tax ({cartState?.auth?.tax?.display_name})
+              {cartState?.auth?.tax?.display_name
+                ? `Tax (${cartState.auth.tax.display_name})`
+                : 'Tax'}
             </Text>
             <Text style={styles.amountText}>
-              {cartState?.auth?.tax?.percentage * 100}%
+              {cartState?.auth?.tax?.percentage
+                ? cartState?.auth?.tax?.percentage
+                : 0}
+              %
             </Text>
           </View>
           <View style={styles.amountContainer}>
@@ -150,7 +155,10 @@ export default function CalculatorScreen(props) {
               }>
               <Text style={[styles.amountText, styles.totalText]}>
                 {currencyFormatter.format(
-                  (getResult() * (1 + cartState?.auth?.tax?.percentage)) / 100,
+                  cartState?.auth?.tax?.percentage
+                    ? (getResult() / 100) *
+                        ((100 + cartState?.auth?.tax?.percentage) / 100)
+                    : getResult() / 100,
                   {
                     code: _.toUpper(Default.currency),
                   },

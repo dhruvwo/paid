@@ -102,7 +102,7 @@ export default function CustomersList(props) {
               style={styles.customerName}
               ellipsizeMode="tail"
               numberOfLines={1}>
-              {item.metadata.first_name} {item.metadata.last_name}
+              {item?.metadata?.first_name} {item?.metadata?.last_name}
             </Text>
             <Text
               style={styles.customerDetail}
@@ -110,12 +110,12 @@ export default function CustomersList(props) {
               numberOfLines={1}>
               {item.email}
             </Text>
-            {item.metadata.business_name && (
+            {item?.metadata?.business_name && (
               <Text
                 style={styles.customerDetail}
                 ellipsizeMode="tail"
                 numberOfLines={1}>
-                {item.metadata.business_name}
+                {item?.metadata?.business_name}
               </Text>
             )}
             {item.phone && (

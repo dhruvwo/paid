@@ -3,10 +3,6 @@ import axios from 'axios';
 import Default from '../../constants/Default';
 
 const products = async ({accountId, searchText, start}) => {
-  // axios
-  //   .request({
-  //     url: `${API_URL}/billing/payments/stripe-product?accountId=${accountId}&perPage=${perPage}&filter=%7B%22filter_name%22:%22${filter_name}%22,%22start%22:${start},%22limit%22:${limit}%7D`,
-  //   })
   return axios
     .get(`${API_URL}/billing/payments/stripe-product`, {
       params: {

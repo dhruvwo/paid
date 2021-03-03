@@ -65,19 +65,23 @@ export default function Checkout(props) {
 
   const sendInvoice = async () => {
     setIsLoading(true);
-    const data = {
+    let data = {
       accountId: stripeDetails.accountId,
       companyId: stripeDetails.companyId,
-      amount: getTotal() + getTotal() * reducState?.auth?.tax?.percentage,
+      amount: reducState?.auth?.tax?.percentage
+        ? (getTotal() / 100) * ((100 + reducState.auth.tax.percentage) / 100)
+        : getTotal() / 100,
       email: customer.email,
       customer: customer.customerId,
       subTotal: getTotal(),
       productItemsArray: getProductItemsArray(),
       currency: Default.currency,
-      default_tax_rates: [reducState?.auth?.tax?.id],
       due_date: moment().format('YYYY-MM-DD HH:mm:ss'),
       terms: 'due',
     };
+    if (reducState?.auth?.tax?.id) {
+      data['default_tax_rates'] = [reducState?.auth?.tax?.id];
+    }
     const invoice = await dispatch(invoiceAction.sendInvoice(data));
     if (invoice.status === 'success') {
       setIsLoading(false);
@@ -100,7 +104,9 @@ export default function Checkout(props) {
     const data = {
       accountId: stripeDetails.accountId,
       companyId: stripeDetails.companyId,
-      amount: getTotal() + getTotal() * reducState?.auth?.tax?.percentage,
+      amount: reducState?.auth?.tax?.percentage
+        ? (getTotal() / 100) * ((100 + reducState.auth.tax.percentage) / 100)
+        : getTotal() / 100,
       email: customer.email,
       customer: customer.customerId,
       currency: Default.currency,
@@ -256,14 +262,15 @@ export default function Checkout(props) {
           <View style={styles.customerContainer}>
             <View>
               <Text style={styles.selectCustomerText(!_.isEmpty(customer))}>
-                {`${
-                  customer?.metadata?.first_name +
-                  `` +
-                  customer?.metadata?.last_name +
-                  (customer?.metadata?.business_name
-                    ? ` (` + customer?.metadata?.business_name + `) `
-                    : '')
-                }`}
+                {customer.metadata &&
+                  `${
+                    customer?.metadata?.first_name +
+                    `` +
+                    customer?.metadata?.last_name +
+                    (customer?.metadata?.business_name
+                      ? ` (` + customer?.metadata?.business_name + `) `
+                      : '')
+                  }`}
               </Text>
               <Text
                 style={[
@@ -305,12 +312,16 @@ export default function Checkout(props) {
             </View>
             <View style={styles.priceDetailContainer}>
               <Text style={styles.titleText}>
-                Tax ({reducState?.auth?.tax?.percentage * 100}%
-                {reducState?.auth?.tax?.display_name})
+                Tax (
+                {reducState?.auth?.tax?.percentage
+                  ? reducState?.auth?.tax?.percentage
+                  : 0}
+                % {reducState?.auth?.tax?.display_name})
               </Text>
               <Text style={styles.priceText}>
                 {currencyFormatter.format(
-                  (getTotal() * reducState?.auth?.tax?.percentage) / 100,
+                  ((getTotal() / 100) * reducState?.auth?.tax?.percentage) /
+                    100,
                   {
                     code: _.toUpper(Default.currency),
                   },
@@ -321,9 +332,10 @@ export default function Checkout(props) {
               <Text style={styles.totalText}>Total Amount </Text>
               <Text style={styles.totalText}>
                 {currencyFormatter.format(
-                  (getTotal() +
-                    getTotal() * reducState?.auth?.tax?.percentage) /
-                    100,
+                  reducState?.auth?.tax?.percentage
+                    ? (getTotal() / 100) *
+                        ((100 + reducState?.auth?.tax?.percentage) / 100)
+                    : getTotal() / 100,
                   {
                     code: _.toUpper(Default.currency),
                   },
