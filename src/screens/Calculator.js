@@ -8,6 +8,7 @@ import {
   Alert,
   ImageBackground,
   Dimensions,
+  Platform,
 } from 'react-native';
 import GlobalStyles from '../constants/GlobalStyles';
 import Header from '../components/Header';
@@ -387,7 +388,7 @@ const styles = StyleSheet.create({
   historyIconStyle: {},
   inputContainer: {
     flexDirection: 'row',
-    paddingVertical: 4,
+    paddingVertical: Platform.OS === 'ios' ? 12 : 4,
     paddingHorizontal: 10,
     backgroundColor: Colors.white,
     alignItems: 'center',
