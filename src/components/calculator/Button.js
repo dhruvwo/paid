@@ -20,7 +20,7 @@ export default ({onPress, text, iconName, iconType}) => {
       height: screen.height / 9,
       alignItems: 'center',
       justifyContent: 'center',
-      margin: 6,
+      margin: 4,
       borderRadius: 10,
       elevation: 2,
       shadowOffset: {
@@ -33,13 +33,17 @@ export default ({onPress, text, iconName, iconType}) => {
     zeroButton: {
       minWidth: screen.width / 4,
     },
+    addText: {
+      color: Colors.white,
+      fontSize: 22,
+    },
   });
 
   return (
     <TouchableOpacity
       onPress={onPress}
       style={[styles.button, text === '0' && styles.zeroButton]}>
-      {text && <Text style={styles.text}>{text}</Text>}
+      {text && <Text style={[styles.text]}>{text}</Text>}
       {iconType && iconName && (
         <CustomIconsComponent
           style={styles.iconStyle}

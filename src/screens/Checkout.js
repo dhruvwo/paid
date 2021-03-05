@@ -159,10 +159,6 @@ export default function Checkout(props) {
     return add;
   };
 
-  const updateCart = (item) => {
-    dispatch(cartAction.updateItem(item));
-  };
-
   const deleteProduct = (id) => {
     Alert.alert('', `Do you want to remove this item from cart?`, [
       {
@@ -205,11 +201,7 @@ export default function Checkout(props) {
             })}
           </Text>
           {item.priceId && (
-            <QuantityComponent
-              item={item}
-              deleteProduct={(id) => deleteProduct(id)}
-              getQuantity={(data) => updateCart(data)}
-            />
+            <QuantityComponent item={item} getQuantity={() => {}} />
           )}
           {item.product.note ? (
             <Text style={styles.productPrice}>{item.product.note}</Text>
@@ -260,7 +252,7 @@ export default function Checkout(props) {
           </View>
         ) : (
           <View style={styles.customerContainer}>
-            <View>
+            <View style={styles.customerDetail}>
               <Text style={styles.selectCustomerText(!_.isEmpty(customer))}>
                 {customer.metadata &&
                   `${
@@ -444,6 +436,7 @@ export default function Checkout(props) {
         closeModal={(customer) => {
           getCustomer(customer);
         }}
+        navigation={props.navigation}
       />
       <ProductDetailModal
         visible={showProductDetailModal}
@@ -451,6 +444,7 @@ export default function Checkout(props) {
           setShowProductDetailModal(false);
           setSelectedProduct('');
         }}
+        navigation={props.navigation}
         product={selectedProduct}
       />
     </SafeAreaView>
@@ -486,13 +480,18 @@ const styles = StyleSheet.create({
     fontWeight: isCustomerSelected ? '700' : 'bold',
     fontSize: isCustomerSelected ? 16 : 18,
     textAlign: isCustomerSelected ? 'left' : 'center',
-    flexGrow: 1,
-    flexShrink: 1,
+    // flexGrow: 1,
+    // flexShrink: 1,
     marginRight: 20,
     color: isCustomerSelected ? Colors.black : Colors.primary,
   }),
   emailText: {
     fontWeight: 'normal',
+  },
+  customerDetail: {
+    flexGrow: 1,
+    flexShrink: 1,
+    width: '100%',
   },
   customerSelectContainer: {
     backgroundColor: Colors.white,

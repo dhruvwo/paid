@@ -23,16 +23,16 @@ const tabs = [
   {
     name: 'QuickPay',
     component: CalculatorScreen,
-    iconType: 'MaterialCommunityIcons',
-    focusedIconName: 'rocket-launch',
-    iconName: 'rocket-launch-outline',
+    iconType: 'Ionicons',
+    focusedIconName: 'ios-calculator-outline',
+    iconName: 'ios-calculator-outline',
   },
   {
     name: 'Products',
     component: ProductList,
-    iconType: 'Feather',
-    focusedIconName: 'align-left',
-    iconName: 'align-left',
+    iconType: 'SimpleLineIcons',
+    focusedIconName: 'social-dropbox',
+    iconName: 'social-dropbox',
   },
 ];
 
@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
     // fontSize: 14,
   },
   tabNavigator: {
-    minHeight: 60,
+    minHeight: 40,
     // backgroundColor: Colors.headerBgGrey,
   },
 });

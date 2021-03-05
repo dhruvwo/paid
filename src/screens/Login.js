@@ -21,6 +21,10 @@ export default function Login(props) {
   const dispatch = useDispatch();
   const [email, setEmail] = useState(''); //hofel64825@agilekz.com
   const [password, setPassword] = useState(''); //Paid123!
+  const [isEmailBlur, setIsEmailBlur] = useState(false);
+  const [isPasswordBlur, setIsPasswordBlur] = useState(false);
+  const [isEmailValid, setIsEmailValid] = useState(false);
+  const [isPasswordValid, setIsPasswordValid] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoginLoader, setIsLoginLoader] = useState(false);
   const [secure, setSecure] = useState(true);
@@ -53,6 +57,34 @@ export default function Login(props) {
     setIsLoginLoader(false);
   };
 
+  const fnChangeEmail = (val) => {
+    setEmail(val.trim());
+    if (isEmailBlur || val) {
+      if (
+        !/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(
+          val.trim(),
+        )
+      ) {
+        setIsEmailValid(false);
+      } else {
+        setIsEmailValid(true);
+      }
+    }
+  };
+
+  const fnChangePassword = (val) => {
+    setPassword(val);
+    if (isPasswordBlur || val) {
+      if (
+        !/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{8,})/.test(val)
+      ) {
+        setIsPasswordValid(false);
+      } else {
+        setIsPasswordValid(true);
+      }
+    }
+  };
+
   return (
     <View style={styles.container}>
       <KeyboardAwareScrollView
@@ -61,18 +93,6 @@ export default function Login(props) {
         contentContainerStyle={styles.scrollContainerStyle}
         scrollEnabled={false}
         keyboardShouldPersistTaps="handled">
-        {/* <View style={styles.headerContainer}>
-          <LinearGradient
-            start={{x: 0.3, y: 0}}
-            end={{x: 1, y: 0}}
-            colors={[Colors.primary, Colors.secondary]}
-            style={styles.headerColorContainer}></LinearGradient>
-          <LinearGradient
-            start={{x: 0.6, y: 0}}
-            end={{x: 1, y: 0}}
-            colors={[Colors.primary, Colors.secondary]}
-            style={styles.headerColorSecondaryContainer}></LinearGradient>
-        </View> */}
         <SvgImageViewer
           LocalIcon={LocalIcons.svgIconSet.logo}
           height={styles.logoStyle.height}
@@ -91,12 +111,17 @@ export default function Login(props) {
               autoCorrect={false}
               keyboardType={'email-address'}
               style={styles.inputLabel}
-              underlineColorAndroid="transparent"
               value={email}
               placeholder="Email*"
-              onChangeText={(email) => setEmail(email.trim())}
+              onBlur={() => setIsEmailBlur(true)}
+              onChangeText={(email) => fnChangeEmail(email)}
             />
           </View>
+          {isEmailBlur && !isEmailValid ? (
+            <Text style={styles.errorMessage}>Valid Email is required</Text>
+          ) : (
+            <View />
+          )}
           <View style={styles.inputContainer}>
             <CustomIconsComponent
               style={styles.inputIcon}
@@ -107,12 +132,12 @@ export default function Login(props) {
             />
             <TextInput
               style={[styles.inputLabel, styles.passwordText]}
-              underlineColorAndroid="transparent"
               placeholder="Password*"
               value={password}
               onSubmitEditing={() => onSubmit()}
               secureTextEntry={secure}
-              onChangeText={(password) => setPassword(password)}
+              onBlur={() => setIsPasswordBlur(true)}
+              onChangeText={(password) => fnChangePassword(password)}
             />
             {password ? (
               <TouchableOpacity
@@ -140,6 +165,16 @@ export default function Login(props) {
               <></>
             )}
           </View>
+          {isPasswordBlur && !isPasswordValid ? (
+            <Text style={styles.errorMessage}>
+              The string must contain at least 1 lowercase alphabetical
+              character, 1 uppercase alphabetical character, 1 numeric
+              character, 1 special character !@#$%^&* and must be 8 characters
+              or longer.
+            </Text>
+          ) : (
+            <></>
+          )}
           <View style={styles.errorContainer}>
             {errorMessage ? (
               <Text style={styles.errorMessage}>{errorMessage}</Text>
@@ -151,9 +186,11 @@ export default function Login(props) {
             style={[
               GlobalStyles.secondaryButtonContainer,
               styles.buttonContainer,
-              !(email && password) ? GlobalStyles.buttonDisabledContainer : '',
+              !(isEmailValid && isPasswordValid)
+                ? GlobalStyles.buttonDisabledContainer
+                : '',
             ]}
-            disabled={!(email && password) || isLoginLoader}
+            disabled={!(isEmailValid && isPasswordValid) || isLoginLoader}
             onPress={() => onSubmit()}>
             {isLoginLoader ? (
               <ActivityIndicator
@@ -169,39 +206,6 @@ export default function Login(props) {
             )}
           </TouchableOpacity>
         </View>
-        {/* <LinearGradient
-          start={{x: 0.4, y: 0}}
-          end={{x: 1, y: 0}}
-          style={[
-            GlobalStyles.buttonContainer,
-            styles.buttonContainer,
-            !email && !password ? {opacity: 0.6} : '',
-          ]}
-          colors={[Colors.primary, Colors.secondary]}> */}
-        {/* <TouchableOpacity
-          style={[
-            GlobalStyles.secondaryButtonContainer,
-            styles.buttonContainer,
-            !email && !password ? {opacity: 0.6} : '',
-          ]}
-          disabled={!email && !password}
-          onPress={() => onSubmit()}>
-          {isLoginLoader ? (
-            <ActivityIndicator
-              color={Colors.white}
-              size={25}
-              style={styles.loaderIcon}
-            />
-          ) : (
-            <View>
-              <Text
-                style={[GlobalStyles.secondaryButtonText, styles.loginText]}>
-                {'Login'}
-              </Text>
-            </View>
-          )}
-        </TouchableOpacity>
-        </LinearGradient> */}
         <View style={styles.forgotPasswordContainer}>
           <TouchableOpacity onPress={() => notInplement()}>
             <View style={styles.loginContainer}>
@@ -217,18 +221,6 @@ export default function Login(props) {
             </TouchableOpacity>
           </View>
         </View>
-        {/* <View style={{flex: 2, flexDirection: 'row-reverse'}}>
-          <LinearGradient
-            start={{x: 0, y: 0}}
-            end={{x: 0.5, y: 0}}
-            colors={[Colors.secondary, Colors.primary]}
-            style={styles.bottomColorContainer}></LinearGradient>
-          <LinearGradient
-            start={{x: 0, y: 0}}
-            end={{x: 0.5, y: 0}}
-            colors={[Colors.secondary, Colors.primary]}
-            style={styles.bottomColorSecondaryContainer}></LinearGradient>
-        </View> */}
       </KeyboardAwareScrollView>
     </View>
   );
@@ -238,50 +230,6 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: Colors.bgColor,
     flex: 1,
-  },
-  headerContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    width: '30%',
-  },
-  headerColorContainer: {
-    height: '100%',
-    width: '55%',
-    borderTopRightRadius: 500,
-    borderBottomRightRadius: 500,
-    paddingTop: 100,
-    zIndex: 1,
-    position: 'relative',
-  },
-  headerColorSecondaryContainer: {
-    height: '50%',
-    width: '100%',
-    borderBottomLeftRadius: 500,
-    borderBottomRightRadius: 500,
-    opacity: 0.8,
-    position: 'absolute',
-    left: 18,
-  },
-  bottomColorContainer: {
-    height: '80%',
-    width: '12%',
-    padding: 20,
-    marginTop: 40,
-    borderBottomLeftRadius: 500,
-    borderTopLeftRadius: 500,
-    zIndex: 1,
-    position: 'relative',
-    bottom: 0,
-  },
-  bottomColorSecondaryContainer: {
-    height: '30%',
-    width: '18%',
-    borderTopLeftRadius: 500,
-    borderTopRightRadius: 500,
-    opacity: 0.8,
-    position: 'absolute',
-    left: 15,
-    bottom: 0,
   },
   logoStyle: {
     height: 150,

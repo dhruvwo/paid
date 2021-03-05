@@ -203,6 +203,7 @@ export default function ProductList(props) {
           setShowProductDetailModal(false);
           setSelectedProduct('');
         }}
+        navigation={props.navigation}
         product={selectedProduct}
       />
     </SafeAreaView>

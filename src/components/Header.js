@@ -56,9 +56,7 @@ const styles = StyleSheet.create({
   pageHeader: (showMenu) => ({
     flexDirection: 'row',
     backgroundColor: Colors.primary,
-    opacity: 0.9,
     width: '100%',
-    // backgroundColor: showMenu ? Colors.tertiary : Colors.bgColor,
   }),
   buttonsContainer: {
     minWidth: 60,

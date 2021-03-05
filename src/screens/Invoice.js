@@ -50,6 +50,15 @@ export default function Invoice(props) {
     reducState?.auth?.userSetup?.payments?.stripeDetails?.accountId;
 
   useEffect(() => {
+    let focusListener = props.navigation.addListener('focus', () => {
+      setIsLoading(true);
+      fetchData();
+    });
+
+    return focusListener;
+  }, [props.navigation]);
+
+  useEffect(() => {
     setData(reducState.invoice.invoices);
   }, [reducState.invoice.invoices]);
 
@@ -124,13 +133,13 @@ export default function Invoice(props) {
     }
     // if (isSearchLoading === true) {
     setIsSearchLoading(false);
+    setIsLoading(false);
     // }
   };
 
   const getData = async () => {
     setIsLoading(true);
     await fetchData();
-    setIsLoading(false);
   };
 
   const onRefresh = async () => {
@@ -251,12 +260,15 @@ export default function Invoice(props) {
   const renderEmptyComponent = () => {
     return (
       <View style={styles.loaderContainer}>
-        {isLoading ? (
+        {/* {isLoading ? (
           <ActivityIndicator size="small" color={Colors.primary} />
         ) : (
           reducState.invoice.has_more === false && (
             <Text style={GlobalStyles.footerText}>No invoice found.</Text>
           )
+        )} */}
+        {!isLoading && reducState.invoice.has_more === false && (
+          <Text style={GlobalStyles.footerText}>No invoice found.</Text>
         )}
       </View>
     );

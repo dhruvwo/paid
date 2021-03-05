@@ -46,6 +46,15 @@ export default function CustomersList(props) {
     getCustomer();
   }, []);
 
+  useEffect(() => {
+    let focusListener = props.navigation.addListener('focus', () => {
+      setIsLoading(true);
+      getCustomer();
+    });
+
+    return focusListener;
+  }, [props.navigation]);
+
   const delayedQuery = useCallback(
     _.debounce(async () => await getCustomer(), 1000),
     [searchText],

@@ -22,7 +22,8 @@ export default function AddCustomer(props) {
   const dispatch = useDispatch();
   const authState = useSelector(({auth}) => auth);
   const accountId = authState?.userSetup?.payments?.stripeDetails?.accountId;
-
+  const [isEmailBlur, setIsEmailBlur] = useState(false);
+  const [isEmailValid, setIsEmailValid] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [data, setData] = useState({
@@ -58,6 +59,21 @@ export default function AddCustomer(props) {
       setError(response.data.message);
     }
     setIsLoading(false);
+  };
+
+  const fnChangeEmail = (val) => {
+    if (isEmailBlur || val) {
+      if (
+        !/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(
+          val.trim(),
+        )
+      ) {
+        setIsEmailValid(false);
+      } else {
+        setIsEmailValid(true);
+      }
+    }
+    setData({...data, email: val.trim()});
   };
 
   return (
@@ -119,11 +135,15 @@ export default function AddCustomer(props) {
                 placeholder="Email*"
                 autoCapitalize={'none'}
                 value={data.email}
-                onChangeText={(email) =>
-                  setData({...data, email: email.trim()})
-                }
+                onBlur={() => setIsEmailBlur(true)}
+                onChangeText={(email) => fnChangeEmail(email)}
               />
             </View>
+            {isEmailBlur && !isEmailValid ? (
+              <Text style={styles.errorMessage}>Valid Email is required</Text>
+            ) : (
+              <View />
+            )}
             <View style={styles.inputContainer}>
               <TextInput
                 style={styles.inputLabel}
@@ -144,10 +164,12 @@ export default function AddCustomer(props) {
             </View>
             <View style={styles.btnContainer}>
               <TouchableOpacity
-                disabled={!isValid || isLoading}
+                disabled={!(isValid && isEmailValid) || isLoading}
                 style={[
                   GlobalStyles.secondaryButtonContainer,
-                  isValid ? '' : GlobalStyles.buttonDisabledContainer,
+                  isValid && isEmailValid
+                    ? ''
+                    : GlobalStyles.buttonDisabledContainer,
                   styles.btnStyle,
                 ]}
                 onPress={() => addCustomer()}>

@@ -25,23 +25,7 @@ export default function ProductDetailModal(props) {
   const cartState = useSelector(({cart}) => cart);
   const [qty, setQty] = useState(1);
   const [isCartProduct, setIsCartProduct] = useState(false);
-
-  useEffect(() => {
-    fnIsCartProduct();
-  }, [props.product]);
-
-  const fnIsCartProduct = () => {
-    const index = _.findIndex(cartState.items, {id: props?.product?.id});
-    if (index > -1) {
-      setQty(cartState.items[index].qty);
-      setIsCartProduct(true);
-    } else {
-      setQty(1);
-      setIsCartProduct(false);
-    }
-  };
-
-  const data = {
+  let data = {
     id: props?.product?.id,
     product: props?.product,
     qty: qty,
@@ -51,16 +35,27 @@ export default function ProductDetailModal(props) {
       : 0,
   };
 
+  useEffect(() => {
+    const index = _.findIndex(cartState.items, {id: props?.product?.id});
+    if (index > -1) {
+      data['qty'] = cartState?.items[index]?.qty;
+      setQty(cartState?.items[index]?.qty);
+      setIsCartProduct(true);
+    } else {
+      setIsCartProduct(false);
+    }
+  }, [props.product, cartState.items]);
+
   const updateQty = (item) => {
     setQty(item.qty);
   };
 
-  const removeProduct = (item) => {
+  const removeProduct = () => {
     Alert.alert('', 'Do you want to remove product from cart?', [
       {
         text: 'Remove',
         onPress: () => {
-          dispatch(cartAction.removeItem(item.id));
+          dispatch(cartAction.removeItem(props?.product?.id));
           setIsCartProduct(false);
         },
       },
@@ -73,7 +68,8 @@ export default function ProductDetailModal(props) {
 
   const onSubmit = async () => {
     if (isCartProduct) {
-      await dispatch(cartAction.updateItem(data));
+      props.navigation.navigate('Checkout');
+      props.closeModal();
     } else {
       await dispatch(cartAction.addItem(data));
       setIsCartProduct(true);
@@ -115,18 +111,27 @@ export default function ProductDetailModal(props) {
             </View>
             <View style={styles.productDetailContainer}>
               <Text style={styles.productText}>{props?.product?.name}</Text>
-              <Text style={styles.descriptionText}>
-                {props?.product?.description}
+              <Text style={styles.priceText}>
+                {currencyFormatter.format(
+                  (!_.isEmpty(props.product)
+                    ? props?.product?.prices[0]?.unitAmountDecimal
+                    : 0) / 100,
+                  {
+                    code: _.toUpper(Default.currency),
+                  },
+                )}
               </Text>
               <View style={styles.detailsContainer}>
                 <View style={styles.priceContainer}>
-                  <Text style={styles.fieldTitleText}>Price</Text>
+                  <Text style={styles.fieldTitleText}>Total:</Text>
                   <View style={styles.fieldValueText}>
-                    <Text style={styles.priceText}>
+                    <Text style={styles.totalText}>
                       {currencyFormatter.format(
-                        (!_.isEmpty(props.product)
-                          ? props?.product?.prices[0]?.unitAmountDecimal
-                          : 0) / 100,
+                        (qty *
+                          (!_.isEmpty(props.product)
+                            ? props?.product?.prices[0]?.unitAmountDecimal
+                            : 0)) /
+                          100,
                         {
                           code: _.toUpper(Default.currency),
                         },
@@ -135,42 +140,42 @@ export default function ProductDetailModal(props) {
                   </View>
                 </View>
                 <View style={styles.priceContainer}>
-                  <Text style={styles.fieldTitleText}>Quantity</Text>
+                  <Text style={styles.fieldTitleText}>Quantity:</Text>
                   <View style={styles.fieldValueText}>
                     <QuantityComponent
-                      showDelete={true}
                       item={data}
-                      deleteProduct={(id) => removeProduct(id)}
                       getQuantity={(data) => updateQty(data)}
                     />
                   </View>
                 </View>
               </View>
+              <Text style={styles.descriptionText}>
+                {props?.product?.description}
+              </Text>
+            </View>
+            <View style={GlobalStyles.row}>
+              <TouchableOpacity
+                style={[GlobalStyles.secondaryButtonContainer, styles.btnStyle]}
+                onPress={() => onSubmit()}>
+                <Text style={GlobalStyles.secondaryButtonText}>
+                  {isCartProduct ? 'Go to cart' : 'Add to cart'}
+                </Text>
+              </TouchableOpacity>
+              {isCartProduct && (
+                <TouchableOpacity
+                  style={[
+                    GlobalStyles.secondaryButtonContainer,
+                    isCartProduct ? '' : GlobalStyles.buttonDisabledContainer,
+                    styles.btnStyle,
+                    styles.deleteButtonStyle,
+                  ]}
+                  disabled={!isCartProduct}
+                  onPress={() => removeProduct()}>
+                  <Text style={GlobalStyles.secondaryButtonText}>Remove</Text>
+                </TouchableOpacity>
+              )}
             </View>
           </KeyboardAwareScrollView>
-          <View style={styles.totalContainer}>
-            <View style={GlobalStyles.flexStyle}>
-              <Text style={styles.totalText}>
-                {currencyFormatter.format(
-                  (qty *
-                    (!_.isEmpty(props.product)
-                      ? props?.product?.prices[0]?.unitAmountDecimal
-                      : 0)) /
-                    100,
-                  {
-                    code: _.toUpper(Default.currency),
-                  },
-                )}
-              </Text>
-            </View>
-            <TouchableOpacity
-              style={[GlobalStyles.buttonContainer, styles.totalBtn]}
-              onPress={() => onSubmit()}>
-              <Text style={GlobalStyles.buttonText}>
-                {isCartProduct ? 'Update' : 'Add'}
-              </Text>
-            </TouchableOpacity>
-          </View>
         </View>
       </SafeAreaView>
     </Modal>
@@ -199,7 +204,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderLeftWidth: 1,
     borderColor: Colors.bgColor,
-    padding: 25,
+    padding: 20,
   },
   productImageContainer: {
     alignItems: 'center',
@@ -224,19 +229,21 @@ const styles = StyleSheet.create({
     marginVertical: 5,
   },
   priceContainer: {
-    paddingTop: 5,
+    // paddingTop: 5,
   },
   fieldValueText: {
     marginTop: 5,
   },
   fieldTitleText: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '700',
     paddingVertical: 5,
   },
   priceText: {
-    fontSize: 18,
-    lineHeight: 18,
+    fontSize: 22,
+    paddingVertical: 5,
+    color: Colors.primary,
+    fontWeight: '700',
   },
   totalContainer: {
     flexDirection: 'row',
@@ -248,15 +255,19 @@ const styles = StyleSheet.create({
     // borderTopLeftRadius: 25,
   },
   totalText: {
-    flexGrow: 1,
-    flexShrink: 1,
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: Colors.white,
-    paddingVertical: 10,
+    fontSize: 18,
+    lineHeight: 30,
   },
   totalBtn: {
     flex: 1,
     borderRadius: 20,
+  },
+  btnStyle: {
+    flex: 1,
+    borderRadius: 0,
+    height: 42,
+  },
+  deleteButtonStyle: {
+    backgroundColor: '#e55c5c',
   },
 });
