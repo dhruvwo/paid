@@ -118,6 +118,10 @@ export default function CalculatorScreen(props) {
     return '';
   }
 
+  const calItemsOnly = cartState.cart.items.filter((o) => {
+    return !o.priceId;
+  });
+
   return (
     <SafeAreaView style={GlobalStyles.flexStyle}>
       <Header
@@ -183,9 +187,7 @@ export default function CalculatorScreen(props) {
             <CustomIconsComponent
               style={styles.historyIconStyle}
               type={'MaterialIcons'}
-              color={
-                cartState?.cart?.items?.length ? Colors.primary : Colors.grey
-              }
+              color={calItemsOnly.length ? Colors.primary : Colors.grey}
               size={25}
               name={'history-toggle-off'}
             />
