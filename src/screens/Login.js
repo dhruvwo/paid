@@ -302,7 +302,8 @@ const styles = StyleSheet.create({
   },
   errorMessage: {
     color: Colors.red,
-    textAlign: 'center',
+    textAlign: 'left',
+    paddingLeft: 15,
   },
   buttonContainer: {
     marginVertical: 10,

@@ -1,5 +1,5 @@
 import React, {useState, useEffect, useCallback} from 'react';
-import {StyleSheet, TouchableOpacity, View, TextInput} from 'react-native';
+import {StyleSheet, TouchableOpacity, View, Text} from 'react-native';
 import Colors from '../constants/Colors';
 import CustomIconsComponent from '../components/CustomIcons';
 import GlobalStyles from '../constants/GlobalStyles';
@@ -12,16 +12,6 @@ export default function QuantityComponent(props) {
   const dispatch = useDispatch();
   const cartState = useSelector(({cart}) => cart);
   const [qty, setQty] = useState(1);
-  const delayedQuery = useCallback(
-    _.debounce(() => updateInputQty(), 300),
-    [qty],
-  );
-
-  useEffect(() => {
-    delayedQuery();
-    // Cancel the debounce on useEffect cleanup.
-    return delayedQuery.cancel;
-  }, [qty, delayedQuery]);
 
   useEffect(() => {
     const index = _.findIndex(cartState.items, {id: props.item.id});
@@ -37,20 +27,6 @@ export default function QuantityComponent(props) {
     } else {
       return false;
     }
-  };
-
-  const updateInputQty = () => {
-    if (parseInt(qty) > 0 && parseInt(qty) <= 2001) {
-      props.item.qty = parseInt(qty);
-    } else {
-      ToastService({
-        message: 'Please give vaild quantity.',
-      });
-    }
-    if (isProductInCart()) {
-      dispatch(cartAction.updateItem(props.item));
-    }
-    props.getQuantity(props.item);
   };
 
   const updateOperatorQty = (val) => {
@@ -73,21 +49,15 @@ export default function QuantityComponent(props) {
     }
   };
 
-  const fnQtyBlur = () => {
-    if (qty === '' || qty == '0') {
-      setQty(1);
-    }
-  };
-
   return (
     <View style={GlobalStyles.row}>
       <TouchableOpacity
-        disabled={qty < 2}
+        // disabled={qty < 2}
         style={[
           styles.qtyBtn('-'),
           qty < 2 ? GlobalStyles.buttonDisabledContainer : '',
         ]}
-        onPress={() => updateOperatorQty('-')}>
+        onPress={() => qty > 1 && updateOperatorQty('-')}>
         <CustomIconsComponent
           name={'minus'}
           size={22}
@@ -95,19 +65,7 @@ export default function QuantityComponent(props) {
           color={Colors.darkGrey}
         />
       </TouchableOpacity>
-      <TextInput
-        style={[styles.qtyInput]}
-        keyboardType={'numeric'}
-        value={qty.toString()}
-        onChangeText={(val) => {
-          if (!isNaN(val)) {
-            setQty(val);
-          } else {
-            setQty('');
-          }
-        }}
-        onBlur={() => fnQtyBlur()}
-      />
+      <Text style={[styles.qtyInput]}>{qty}</Text>
       <TouchableOpacity
         style={styles.qtyBtn('+')}
         onPress={() => {
@@ -144,6 +102,7 @@ const styles = StyleSheet.create({
     width: 55,
     height: 33,
     color: Colors.primary,
-    backgroundColor: '#fafafa',
+    // backgroundColor: '#fafafa',
+    paddingTop: 6,
   },
 });
