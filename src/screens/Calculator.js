@@ -6,6 +6,9 @@ import {
   SafeAreaView,
   TouchableOpacity,
   Alert,
+  ImageBackground,
+  Dimensions,
+  Platform,
 } from 'react-native';
 import GlobalStyles from '../constants/GlobalStyles';
 import Header from '../components/Header';
@@ -20,9 +23,14 @@ import History from '../components/calculator/History';
 import {cartAction} from '../store/actions';
 import {useDispatch, useSelector} from 'react-redux';
 
+const screen = Dimensions.get('window');
+
 export default function CalculatorScreen(props) {
   const dispatch = useDispatch();
-  const cartState = useSelector(({cart}) => cart);
+  const cartState = useSelector(({cart, auth}) => ({
+    cart,
+    auth,
+  }));
   const [currVal, setCurrVal] = useState(0);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [showNoteModal, setShowNoteModal] = useState(false);
@@ -30,7 +38,7 @@ export default function CalculatorScreen(props) {
 
   const addCart = async (current) => {
     const data = {
-      id: 'quickPay' + cartState?.items?.length,
+      id: 'quickPay' + cartState?.cart?.items?.length,
       product: {type: 'quick Pay', note: note},
       price: current * 100,
       qty: 1,
@@ -88,7 +96,7 @@ export default function CalculatorScreen(props) {
 
   const getResult = () => {
     let add = 0;
-    cartState.items.forEach((val) => {
+    cartState.cart.items.forEach((val) => {
       if (!val.priceId) {
         add += val.price;
       }
@@ -111,6 +119,10 @@ export default function CalculatorScreen(props) {
     return '';
   }
 
+  const calItemsOnly = cartState.cart.items.filter((o) => {
+    return !o.priceId;
+  });
+
   return (
     <SafeAreaView style={GlobalStyles.flexStyle}>
       <Header
@@ -120,7 +132,10 @@ export default function CalculatorScreen(props) {
         showCheckout={true}
       />
       <View style={GlobalStyles.flexStyle}>
-        <View style={[GlobalStyles.row, styles.container]}>
+        <ImageBackground
+          source={require('../assets/bg.png')}
+          style={styles.container}
+          resizeMode={'cover'}>
           <View style={styles.amountContainer}>
             <Text style={styles.amountHeaderText}>Amount</Text>
             <Text style={styles.amountText}>
@@ -130,8 +145,17 @@ export default function CalculatorScreen(props) {
             </Text>
           </View>
           <View style={[styles.amountContainer]}>
-            <Text style={styles.amountHeaderText}>Tax ({Default.taxName})</Text>
-            <Text style={styles.amountText}>{Default.tax * 100}%</Text>
+            <Text style={styles.amountHeaderText}>
+              {cartState?.auth?.tax?.display_name
+                ? `Tax (${cartState.auth.tax.display_name})`
+                : 'Tax'}
+            </Text>
+            <Text style={styles.amountText}>
+              {cartState?.auth?.tax?.percentage
+                ? cartState?.auth?.tax?.percentage
+                : 0}
+              %
+            </Text>
           </View>
           <View style={styles.amountContainer}>
             <Text style={[styles.amountHeaderText, styles.totalHeaderText]}>
@@ -143,7 +167,10 @@ export default function CalculatorScreen(props) {
               }>
               <Text style={[styles.amountText, styles.totalText]}>
                 {currencyFormatter.format(
-                  (getResult() * (1 + Default.tax)) / 100,
+                  cartState?.auth?.tax?.percentage
+                    ? (getResult() / 100) *
+                        ((100 + cartState?.auth?.tax?.percentage) / 100)
+                    : getResult() / 100,
                   {
                     code: _.toUpper(Default.currency),
                   },
@@ -151,18 +178,17 @@ export default function CalculatorScreen(props) {
               </Text>
             </TouchableOpacity>
           </View>
-        </View>
-
+        </ImageBackground>
         <View style={styles.inputContainer}>
           <TouchableOpacity
-            // disabled={!cartState??.items?.length}
+            // disabled={!cartState?.cart?.items?.length}
             onPress={() => {
               setShowHistoryModal(true);
             }}>
             <CustomIconsComponent
               style={styles.historyIconStyle}
               type={'MaterialIcons'}
-              color={cartState?.items?.length ? Colors.primary : Colors.grey}
+              color={calItemsOnly.length ? Colors.primary : Colors.grey}
               size={25}
               name={'history-toggle-off'}
             />
@@ -237,44 +263,57 @@ export default function CalculatorScreen(props) {
           </View>
 
           <View style={GlobalStyles.row}>
-            <Button text="7" onPress={() => handleTap('number', 7)} />
-            <Button text="8" onPress={() => handleTap('number', 8)} />
-            <Button text="9" onPress={() => handleTap('number', 9)} />
-            <Button
-              text="AC"
-              theme="secondary"
-              onPress={() => {
-                cartState?.items?.length
-                  ? Alert.alert('', 'Do you want to clear all?', [
-                      {
-                        text: 'Clear',
-                        onPress: () => {
-                          handleTap('clear');
+            <View style={styles.footerBottonContainer}>
+              <View style={GlobalStyles.row}>
+                <Button text="7" onPress={() => handleTap('number', 7)} />
+                <Button text="8" onPress={() => handleTap('number', 8)} />
+                <Button text="9" onPress={() => handleTap('number', 9)} />
+              </View>
+              <View style={GlobalStyles.row}>
+                <Button
+                  text="."
+                  theme="secondary"
+                  onPress={() => handleTap('double')}
+                />
+                <Button text="0" onPress={() => handleTap('number', 0)} />
+              </View>
+            </View>
+            <View style={styles.clearContainer}>
+              <Button
+                text="AC"
+                theme="secondary"
+                onPress={() => {
+                  cartState?.cart?.items?.length
+                    ? Alert.alert('', 'Do you want to clear all?', [
+                        {
+                          text: 'Clear',
+                          onPress: () => {
+                            handleTap('clear');
+                          },
                         },
-                      },
-                      {
-                        text: 'Cancel',
-                        style: 'cancel',
-                      },
-                    ])
-                  : handleTap('onlyClear');
-              }}
-            />
+                        {
+                          text: 'Cancel',
+                          style: 'cancel',
+                        },
+                      ])
+                    : handleTap('onlyClear');
+                }}
+              />
+            </View>
           </View>
-          <View style={GlobalStyles.row}>
-            <Button text="0" onPress={() => handleTap('number', 0)} />
-            <Button
-              text="."
-              theme="secondary"
-              onPress={() => handleTap('double')}
-            />
-            <Button
-              text="+"
-              theme="accent"
+          <View>
+            <TouchableOpacity
+              style={[GlobalStyles.secondaryButtonContainer, styles.addButton]}
               onPress={() =>
                 currVal && currVal > 0 && handleTap('operator', '+')
-              }
-            />
+              }>
+              <CustomIconsComponent
+                type={'MaterialIcons'}
+                name={'add'}
+                color={Colors.white}
+                size={28}
+              />
+            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -298,17 +337,20 @@ export default function CalculatorScreen(props) {
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    backgroundColor: Colors.white,
+    flexDirection: 'row',
+    // backgroundColor: 'rgba(0, 0, 0, 1)',
+    // marginVertical: 6,
     justifyContent: 'space-around',
-    margin: 10,
-    borderRadius: 20,
-    elevation: 2,
-    shadowOffset: {
-      width: 2,
-      height: 2,
-    },
-    shadowOpacity: 0.15,
-    shadowRadius: 2.62,
+    // elevation: 8,
+    // shadowOffset: {
+    //   width: 2,
+    //   height: 2,
+    // },
+    // shadowOpacity: 0.15,
+    // shadowRadius: 2.62,
+  },
+  imageContainer: {
+    width: '100%',
   },
   inputText: {
     color: Colors.greyText,
@@ -319,21 +361,22 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   amountHeaderText: {
-    fontSize: 16,
-    color: Colors.grey,
+    fontSize: 18,
+    color: Colors.white,
+    fontWeight: 'bold',
   },
   amountText: {
-    fontSize: 18,
-    color: Colors.grey,
+    fontSize: 16,
+    color: Colors.white,
     paddingTop: 10,
+    fontWeight: 'bold',
   },
   calculatorContainer: {
     justifyContent: 'flex-end',
     backgroundColor: '#EDEFF3',
     borderTopWidth: 1,
     borderTopColor: Colors.grey,
-    paddingHorizontal: 6,
-    paddingVertical: 6,
+    padding: 4,
   },
   iconContainer: {
     flexDirection: 'row',
@@ -345,16 +388,19 @@ const styles = StyleSheet.create({
   historyIconStyle: {},
   inputContainer: {
     flexDirection: 'row',
-    paddingVertical: 10,
+    paddingVertical: Platform.OS === 'ios' ? 12 : 4,
     paddingHorizontal: 10,
     backgroundColor: Colors.white,
     alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: Colors.grey,
   },
   totalHeaderText: {
+    fontSize: 20,
     fontWeight: 'bold',
   },
   totalText: {
-    color: Colors.primary,
+    color: Colors.white,
     fontWeight: 'bold',
   },
   noteTextStyle: {
@@ -365,5 +411,13 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     flexShrink: 1,
     marginRight: 60,
+  },
+  footerBottonContainer: {flexGrow: 1},
+  clearContainer: {width: screen.width / 4},
+  addButton: {
+    alignItems: 'center',
+    margin: 4,
+    borderRadius: 10,
+    paddingVertical: 12,
   },
 });

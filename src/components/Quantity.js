@@ -1,29 +1,24 @@
 import React, {useState, useEffect, useCallback} from 'react';
-import {StyleSheet, TouchableOpacity, View, TextInput} from 'react-native';
+import {StyleSheet, TouchableOpacity, View, Text} from 'react-native';
 import Colors from '../constants/Colors';
 import CustomIconsComponent from '../components/CustomIcons';
 import GlobalStyles from '../constants/GlobalStyles';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import * as _ from 'lodash';
 import ToastService from '../services/Toast';
+import {cartAction} from '../store/actions';
 
 export default function QuantityComponent(props) {
+  const dispatch = useDispatch();
   const cartState = useSelector(({cart}) => cart);
   const [qty, setQty] = useState(1);
-  const delayedQuery = useCallback(
-    _.debounce(() => updateInputQty(), 300),
-    [qty],
-  );
 
   useEffect(() => {
-    delayedQuery();
-    // Cancel the debounce on useEffect cleanup.
-    return delayedQuery.cancel;
-  }, [qty, delayedQuery]);
-
-  useEffect(() => {
-    setQty(props.item.qty);
-  }, [props.item]);
+    const index = _.findIndex(cartState.items, {id: props.item.id});
+    if (index > -1) {
+      setQty(cartState?.items[index]?.qty);
+    }
+  }, [cartState.items]);
 
   const isProductInCart = () => {
     const index = _.findIndex(cartState.items, {id: props.item.id});
@@ -33,62 +28,55 @@ export default function QuantityComponent(props) {
       return false;
     }
   };
-  const showDelete =
-    props.showDelete && !(props.item.qty > 1 || !isProductInCart());
-
-  const updateInputQty = () => {
-    if (parseInt(qty) > 0 && parseInt(qty) <= 2001) {
-      props.item.qty = parseInt(qty);
-    } else if (qty === '') {
-      setQty(1);
-    } else {
-      setQty(1);
-      ToastService({
-        message: 'Please give vaild quantity.',
-      });
-    }
-    props.getQuantity(props.item);
-  };
 
   const updateOperatorQty = (val) => {
+    let qtyUpdate = 1;
     if (val === '+' && qty < 2001) {
-      setQty(parseInt(qty) + 1);
-    } else if (val === '-' && qty > 1) {
-      setQty(parseInt(qty) - 1);
+      qtyUpdate = qty === '' ? 1 : parseInt(qty) + 1;
+    } else if (val === '-' && (qty > 1 || qty === '')) {
+      qtyUpdate = qty === '' ? 1 : parseInt(qty) - 1;
     } else {
       ToastService({
         message: 'Please give vaild quantity.',
       });
     }
+    props.item['qty'] = qtyUpdate;
     props.getQuantity(props.item);
+    if (isProductInCart()) {
+      dispatch(cartAction.updateItem(props.item));
+    } else {
+      setQty(qtyUpdate);
+    }
   };
 
   return (
     <View style={GlobalStyles.row}>
       <TouchableOpacity
-        style={styles.qtyBtn('-')}
-        onPress={() => {
-          showDelete ? props.deleteProduct(props.item) : updateOperatorQty('-');
-        }}>
+        // disabled={qty < 2}
+        style={[
+          styles.qtyBtn('-'),
+          qty < 2 ? GlobalStyles.buttonDisabledContainer : '',
+        ]}
+        onPress={() => qty > 1 && updateOperatorQty('-')}>
         <CustomIconsComponent
-          name={showDelete ? 'delete-outline' : 'minus'}
+          name={'minus'}
           size={22}
-          type={showDelete ? 'MaterialCommunityIcons' : 'Entypo'}
-          color={showDelete ? Colors.red : Colors.primary}
+          type={'Entypo'}
+          color={Colors.darkGrey}
         />
       </TouchableOpacity>
-      <TextInput
-        style={[styles.qtyInput]}
-        keyboardType={'numeric'}
-        value={qty.toString()}
-        onChangeText={(val) => setQty(parseInt(val))}
-      />
+      <Text style={[styles.qtyInput]}>{qty}</Text>
       <TouchableOpacity
         style={styles.qtyBtn('+')}
         onPress={() => {
           updateOperatorQty('+');
         }}>
-        <CustomIconsComponent name={'add'} size={22} type={'MaterialIcons'} />
+        <CustomIconsComponent
+          name={'add'}
+          size={22}
+          type={'MaterialIcons'}
+          color={Colors.darkGrey}
+        />
       </TouchableOpacity>
     </View>
   );
@@ -96,7 +84,7 @@ export default function QuantityComponent(props) {
 
 const styles = StyleSheet.create({
   qtyBtn: (txt) => ({
-    backgroundColor: txt === '-' ? Colors.bgColor : '#ADE2C4',
+    backgroundColor: txt === '-' ? '#fcece9' : '#d5f2e1',
     justifyContent: 'center',
     borderRadius: 5,
     alignItems: 'center',
@@ -105,13 +93,16 @@ const styles = StyleSheet.create({
   }),
   qtyInput: {
     fontSize: 16,
+    fontWeight: '700',
     textAlign: 'center',
     alignItems: 'center',
     padding: 0,
     paddingTop: 0,
     paddingBottom: 0,
-    width: 65,
+    width: 55,
     height: 33,
-    backgroundColor: Colors.lightGrey,
+    color: Colors.primary,
+    // backgroundColor: '#fafafa',
+    paddingTop: 6,
   },
 });

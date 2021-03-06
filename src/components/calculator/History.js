@@ -22,7 +22,7 @@ import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 
 export default function History(props) {
   const dispatch = useDispatch();
-  const cartState = useSelector(({cart}) => cart);
+  const cartState = useSelector(({cart, auth}) => ({cart, auth}));
   const [isEditable, setIsEditable] = useState(false);
   const [newValue, setNewValue] = useState('');
 
@@ -50,7 +50,7 @@ export default function History(props) {
     ]);
   };
 
-  const calItemsOnly = cartState.items.filter((o) => {
+  const calItemsOnly = cartState.cart.items.filter((o) => {
     return !o.priceId;
   });
 
@@ -98,14 +98,17 @@ export default function History(props) {
                           {`${
                             ` + ` +
                             currencyFormatter.format(
-                              (newValue / 100) * Default.tax,
+                              (newValue / 100) *
+                                cartState?.auth?.tax?.percentage,
                               {
                                 code: _.toUpper(Default.currency),
                               },
                             ) +
                             ` = ` +
                             currencyFormatter.format(
-                              newValue / 100 + (newValue / 100) * Default.tax,
+                              newValue / 100 +
+                                (newValue / 100) *
+                                  cartState?.auth?.tax?.percentage,
                               {
                                 code: _.toUpper(Default.currency),
                               },
@@ -129,14 +132,20 @@ export default function History(props) {
                           }) +
                           ` + ` +
                           currencyFormatter.format(
-                            (val.price / 100) * Default.tax,
+                            ((val.price / 100) *
+                              cartState?.auth?.tax?.percentage) /
+                              100,
                             {
                               code: _.toUpper(Default.currency),
                             },
                           ) +
                           ` = ` +
                           currencyFormatter.format(
-                            val.price / 100 + (val.price / 100) * Default.tax,
+                            cartState?.auth?.tax?.percentage
+                              ? (val.price / 100) *
+                                  ((100 + cartState?.auth?.tax?.percentage) /
+                                    100)
+                              : val.price / 100,
                             {
                               code: _.toUpper(Default.currency),
                             },

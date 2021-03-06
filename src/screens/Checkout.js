@@ -65,19 +65,23 @@ export default function Checkout(props) {
 
   const sendInvoice = async () => {
     setIsLoading(true);
-    const data = {
+    let data = {
       accountId: stripeDetails.accountId,
       companyId: stripeDetails.companyId,
-      amount: getTotal() + getTotal() * Default.tax,
+      amount: reducState?.auth?.tax?.percentage
+        ? (getTotal() / 100) * ((100 + reducState.auth.tax.percentage) / 100)
+        : getTotal() / 100,
       email: customer.email,
       customer: customer.customerId,
       subTotal: getTotal(),
       productItemsArray: getProductItemsArray(),
       currency: Default.currency,
-      default_tax_rates: [Default.taxId],
       due_date: moment().format('YYYY-MM-DD HH:mm:ss'),
       terms: 'due',
     };
+    if (reducState?.auth?.tax?.id) {
+      data['default_tax_rates'] = [reducState?.auth?.tax?.id];
+    }
     const invoice = await dispatch(invoiceAction.sendInvoice(data));
     if (invoice.status === 'success') {
       setIsLoading(false);
@@ -100,7 +104,9 @@ export default function Checkout(props) {
     const data = {
       accountId: stripeDetails.accountId,
       companyId: stripeDetails.companyId,
-      amount: getTotal() + getTotal() * Default.tax,
+      amount: reducState?.auth?.tax?.percentage
+        ? (getTotal() / 100) * ((100 + reducState.auth.tax.percentage) / 100)
+        : getTotal() / 100,
       email: customer.email,
       customer: customer.customerId,
       currency: Default.currency,
@@ -153,10 +159,6 @@ export default function Checkout(props) {
     return add;
   };
 
-  const updateCart = (item) => {
-    dispatch(cartAction.updateItem(item));
-  };
-
   const deleteProduct = (id) => {
     Alert.alert('', `Do you want to remove this item from cart?`, [
       {
@@ -199,11 +201,7 @@ export default function Checkout(props) {
             })}
           </Text>
           {item.priceId && (
-            <QuantityComponent
-              item={item}
-              deleteProduct={(id) => deleteProduct(id)}
-              getQuantity={(data) => updateCart(data)}
-            />
+            <QuantityComponent item={item} getQuantity={() => {}} />
           )}
           {item.product.note ? (
             <Text style={styles.productPrice}>{item.product.note}</Text>
@@ -254,16 +252,17 @@ export default function Checkout(props) {
           </View>
         ) : (
           <View style={styles.customerContainer}>
-            <View>
+            <View style={styles.customerDetail}>
               <Text style={styles.selectCustomerText(!_.isEmpty(customer))}>
-                {`${
-                  customer?.metadata?.first_name +
-                  `` +
-                  customer?.metadata?.last_name +
-                  (customer?.metadata?.business_name
-                    ? ` (` + customer?.metadata?.business_name + `) `
-                    : '')
-                }`}
+                {customer.metadata &&
+                  `${
+                    customer?.metadata?.first_name +
+                    `` +
+                    customer?.metadata?.last_name +
+                    (customer?.metadata?.business_name
+                      ? ` (` + customer?.metadata?.business_name + `) `
+                      : '')
+                  }`}
               </Text>
               <Text
                 style={[
@@ -305,19 +304,30 @@ export default function Checkout(props) {
             </View>
             <View style={styles.priceDetailContainer}>
               <Text style={styles.titleText}>
-                Tax ({Default.tax * 100}% {Default.taxName})
+                Tax (
+                {reducState?.auth?.tax?.percentage
+                  ? reducState?.auth?.tax?.percentage
+                  : 0}
+                % {reducState?.auth?.tax?.display_name})
               </Text>
               <Text style={styles.priceText}>
-                {currencyFormatter.format((getTotal() * Default.tax) / 100, {
-                  code: _.toUpper(Default.currency),
-                })}
+                {currencyFormatter.format(
+                  ((getTotal() / 100) * reducState?.auth?.tax?.percentage) /
+                    100,
+                  {
+                    code: _.toUpper(Default.currency),
+                  },
+                )}
               </Text>
             </View>
             <View style={[styles.priceDetailContainer, styles.totalContainer]}>
               <Text style={styles.totalText}>Total Amount </Text>
               <Text style={styles.totalText}>
                 {currencyFormatter.format(
-                  (getTotal() + getTotal() * Default.tax) / 100,
+                  reducState?.auth?.tax?.percentage
+                    ? (getTotal() / 100) *
+                        ((100 + reducState?.auth?.tax?.percentage) / 100)
+                    : getTotal() / 100,
                   {
                     code: _.toUpper(Default.currency),
                   },
@@ -426,6 +436,7 @@ export default function Checkout(props) {
         closeModal={(customer) => {
           getCustomer(customer);
         }}
+        navigation={props.navigation}
       />
       <ProductDetailModal
         visible={showProductDetailModal}
@@ -433,6 +444,7 @@ export default function Checkout(props) {
           setShowProductDetailModal(false);
           setSelectedProduct('');
         }}
+        navigation={props.navigation}
         product={selectedProduct}
       />
     </SafeAreaView>
@@ -468,13 +480,18 @@ const styles = StyleSheet.create({
     fontWeight: isCustomerSelected ? '700' : 'bold',
     fontSize: isCustomerSelected ? 16 : 18,
     textAlign: isCustomerSelected ? 'left' : 'center',
-    flexGrow: 1,
-    flexShrink: 1,
+    // flexGrow: 1,
+    // flexShrink: 1,
     marginRight: 20,
     color: isCustomerSelected ? Colors.black : Colors.primary,
   }),
   emailText: {
     fontWeight: 'normal',
+  },
+  customerDetail: {
+    flexGrow: 1,
+    flexShrink: 1,
+    width: '100%',
   },
   customerSelectContainer: {
     backgroundColor: Colors.white,

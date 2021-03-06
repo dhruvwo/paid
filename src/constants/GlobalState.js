@@ -2,6 +2,7 @@ export const AuthState = {
   SET_KEY: 'SET_KEY',
   SET_USER: 'SET_USER',
   SET_USER_SETUP: 'SET_USER_SETUP',
+  SET_TAX: 'SET_TAX',
   CLEAR_USER: 'CLEAR_USER',
 };
 

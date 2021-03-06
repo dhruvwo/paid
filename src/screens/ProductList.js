@@ -86,11 +86,11 @@ export default function ProductList(props) {
       setIsLoadMoreLoader(true);
       setStart(startIndex + Default.perPageLimit);
       await dispatch(
-        productAction.getProducts(
-          accountId,
-          searchText,
-          startIndex + Default.perPageLimit,
-        ),
+        productAction.getProducts({
+          accountId: accountId,
+          searchText: searchText,
+          start: startIndex + Default.perPageLimit,
+        }),
       );
       setIsLoadMoreLoader(false);
       setOnEndReachedCalledDuringMomentum(true);
@@ -149,7 +149,7 @@ export default function ProductList(props) {
           {isLoadMoreLoader ? (
             <ActivityIndicator size="small" color={Colors.primary} />
           ) : (
-            start + Default.perPageLimit <=
+            start + Default.perPageLimit >=
               reducState.product.totalProducts && (
               <Text style={GlobalStyles.footerText}>No more products.</Text>
             )
@@ -203,6 +203,7 @@ export default function ProductList(props) {
           setShowProductDetailModal(false);
           setSelectedProduct('');
         }}
+        navigation={props.navigation}
         product={selectedProduct}
       />
     </SafeAreaView>

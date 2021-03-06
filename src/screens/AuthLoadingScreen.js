@@ -21,6 +21,9 @@ export default function AuthLoadingScreen(props) {
       let userSetup = await AsyncStorage.getItem('userSetup');
       userSetup = JSON.parse(userSetup);
       if (authenticationResponse && authenticationResponse.token) {
+        dispatch(
+          authAction.getTax(userSetup?.payments?.stripeDetails?.accountId),
+        );
         dispatch(authAction.setKey(apiServiceResponse));
         dispatch(authAction.setUser(authenticationResponse));
         dispatch(authAction.setUserSetup(userSetup));
