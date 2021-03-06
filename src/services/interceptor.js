@@ -46,6 +46,7 @@ export const axiosInterceptor = (dispatch) => {
     },
     (err) => {
       console.error('error in interceptor request!!', err);
+      FileLogger.error('error in interceptor request!!', err);
       // Handle errors
       throw err;
     },
@@ -67,6 +68,11 @@ export const axiosInterceptor = (dispatch) => {
           });
         }
       }
+      console.error('error in interceptor request for handling 403 err', error);
+      FileLogger.error(
+        'error in interceptor request for handling 403 err',
+        err,
+      );
       return Promise.reject(error);
     },
   );

@@ -32,6 +32,7 @@ const getProducts = (filters) => {
       })
       .catch((err) => {
         console.error('error in product action', err);
+        FileLogger.error('error in product action', err);
         return err.response;
       });
   };

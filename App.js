@@ -10,7 +10,14 @@ const App = () => {
   useEffect(() => {
     axiosInterceptor(dispatch);
   }, []);
-  FileLogger.configure();
+  FileLogger.configure(
+    (Option = {
+      // dailyRolling: true,
+      // maximumFileSize: 1024 * 1024,
+      // maximumNumberOfFiles: 5,
+    }),
+  );
+  FileLogger.info('log starting');
   return <AppNavigator />;
 };
 

@@ -31,6 +31,7 @@ const getCustomers = (filters) => {
       })
       .catch((err) => {
         console.error('error in customer action', err);
+        FileLogger.error('error in customer action', err);
         return err.response;
       });
   };
@@ -45,6 +46,7 @@ const addCustomer = (accountId, filter_name, start) => {
       })
       .catch((err) => {
         console.error('error in add customer action', err);
+        FileLogger.error('error in add customer action', err);
         return err.response;
       });
   };

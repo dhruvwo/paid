@@ -43,6 +43,7 @@ const getServiceKey = () => {
       })
       .catch((err) => {
         console.error('error in getServiceKey action', err);
+        FileLogger.error('error in getServiceKey action', err);
         return err.response;
       });
   };
@@ -60,6 +61,7 @@ const login = (email, password) => {
       })
       .catch((err) => {
         console.error('error in login action', err);
+        FileLogger.error('error in login action', err);
         return err.response;
       });
   };
@@ -75,6 +77,7 @@ const getUserSetup = () => {
       })
       .catch((err) => {
         console.error('error in getServiceKey action', err);
+        FileLogger.error('error in getServiceKey action', err);
         return err.response;
       });
   };
@@ -95,6 +98,7 @@ const getTax = (accountId) => {
       })
       .catch((err) => {
         console.error('error in get tax in invoice action', err);
+        FileLogger.error('error in get tax in invoice action', err);
         return err.response;
       });
   };

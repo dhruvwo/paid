@@ -32,6 +32,7 @@ const getInvoices = (filters) => {
       })
       .catch((err) => {
         console.error('error in invoice action', err);
+        FileLogger.error('error in invoice action', err);
         return err.response;
       });
   };
@@ -46,6 +47,7 @@ const sendInvoice = (data) => {
       })
       .catch((err) => {
         console.error('error in send invoice action', err);
+        FileLogger.error('error in send invoice action', err);
         return err.response;
       });
   };
@@ -60,6 +62,7 @@ const sendQuickPayInvoice = (data) => {
       })
       .catch((err) => {
         console.error('error in sending quick pay invoice action', err);
+        FileLogger.error('error in sending quick pay invoice action', err);
         return err.response;
       });
   };

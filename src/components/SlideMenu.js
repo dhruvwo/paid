@@ -114,11 +114,18 @@ export default function SideMenu(props) {
           );
         })}
       </ScrollView>
-      <View style={styles.bottomContainer}>
+      <View style={styles.logContainer}>
         <TouchableOpacity
           onPress={() => sendLog()}
           style={styles.menuItemContainer}>
-          <Text style={styles.menuText}>Send log</Text>
+          <CustomIconsComponent
+            style={styles.menuIconContainer}
+            type={'Ionicons'}
+            name={'help-circle-outline'}
+            color={Colors.greyText}
+            // size={27}
+          />
+          <Text style={styles.menuText}>Help</Text>
         </TouchableOpacity>
       </View>
       <View style={styles.bottomContainer}>
@@ -192,8 +199,12 @@ const styles = StyleSheet.create({
     color: Colors.greyText,
     justifyContent: 'center',
   },
+  logContainer: {
+    paddingHorizontal: 20,
+  },
   bottomContainer: {
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
